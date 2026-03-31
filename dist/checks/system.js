@@ -18,7 +18,7 @@ async function getHostInfo() {
     const platform = node_os_1.default.platform();
     const release = node_os_1.default.release();
     const osFamily = (0, platform_1.detectOsFamily)(platform);
-    const [homebrew, windows] = await Promise.all([(0, platform_1.detectHomebrew)(osFamily), (0, platform_1.buildWindowsPosture)(osFamily)]);
+    const [packageManagers, windows] = await Promise.all([(0, platform_1.detectPackageManagers)(osFamily), (0, platform_1.buildWindowsPosture)(osFamily)]);
     return {
         hostname: node_os_1.default.hostname(),
         platform,
@@ -30,7 +30,7 @@ async function getHostInfo() {
         nodeVersion: process.version,
         uptimeSec: safeUptime(),
         user: process.env.USER || process.env.LOGNAME || process.env.USERNAME,
-        packageManagers: homebrew ? [homebrew] : [],
+        packageManagers,
         windows,
     };
 }

@@ -32,6 +32,8 @@ async function buildReport(options) {
         summary: {
             status: assessed.status,
             score: assessed.score,
+            standardMax: assessed.standardMax,
+            bonusPoints: assessed.bonusPoints,
         },
         host,
         hardware,
@@ -40,6 +42,13 @@ async function buildReport(options) {
             checks: networkChecks,
         },
         fit: assessed.fit,
+        scoreBreakdown: {
+            standardMax: assessed.standardMax,
+            rawScore: assessed.rawScore,
+            cappedScore: assessed.score,
+            bonusPoints: assessed.bonusPoints,
+            items: assessed.scoreBreakdown,
+        },
         warnings: assessed.warnings,
         recommendations: assessed.recommendations,
     };

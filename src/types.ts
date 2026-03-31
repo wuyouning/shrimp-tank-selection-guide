@@ -5,7 +5,7 @@ export type SummaryStatus = 'PASS' | 'PASS_WITH_WARNINGS' | 'LIMITED' | 'FAIL';
 export type FitLevel = 'good' | 'limited' | 'poor';
 export type Importance = 'required' | 'recommended' | 'optional';
 export type CheckCategory = 'system' | 'dependency' | 'network' | 'hardware';
-export type PackageManagerName = 'homebrew';
+export type PackageManagerName = 'homebrew' | 'apt' | 'dnf' | 'yum' | 'pacman' | 'winget';
 
 export interface PackageManagerStatus {
   name: PackageManagerName;
@@ -81,9 +81,27 @@ export interface FitAssessment {
   media: FitLevel;
 }
 
+export interface ScoreBreakdownItem {
+  key: string;
+  label: string;
+  points: number;
+  maxPoints?: number;
+  note?: string;
+}
+
+export interface ScoreBreakdown {
+  standardMax: number;
+  rawScore: number;
+  cappedScore: number;
+  bonusPoints: number;
+  items: ScoreBreakdownItem[];
+}
+
 export interface ReportSummary {
   status: SummaryStatus;
   score: number;
+  standardMax: number;
+  bonusPoints: number;
 }
 
 export interface PreflightReport {
@@ -99,6 +117,7 @@ export interface PreflightReport {
     checks: NetworkCheckResult[];
   };
   fit: FitAssessment;
+  scoreBreakdown: ScoreBreakdown;
   warnings: string[];
   recommendations: string[];
 }

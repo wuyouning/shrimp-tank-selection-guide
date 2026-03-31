@@ -22,9 +22,12 @@ function statusColor(status: string): string {
 export function formatText(report: PreflightReport, verbose = false): string {
   const lines: string[] = [];
   const homebrew = report.host.packageManagers.find((manager) => manager.name === 'homebrew');
+  const packageManagers = report.host.packageManagers.filter((manager) => manager.detected);
 
   lines.push(pc.bold(`OpenClaw Preflight Checker v${report.version}`));
-  lines.push(`${pc.bold('Status:')} ${statusColor(report.summary.status)} (${report.summary.score}/100)`);
+  lines.push(
+    `${pc.bold('Status:')} ${statusColor(report.summary.status)} (${report.summary.score}/${report.summary.standardMax}${report.summary.bonusPoints > 0 ? ` +${report.summary.bonusPoints} bonus` : ''})`,
+  );
   lines.push('');
 
   lines.push(pc.bold('Host Summary'));
@@ -38,6 +41,9 @@ export function formatText(report: PreflightReport, verbose = false): string {
     lines.push(
       `- Homebrew: ${homebrew.detected ? homebrew.version || 'detected' : 'not detected'}${!homebrew.detected && homebrew.installUrl ? ` (${homebrew.installUrl})` : ''}`,
     );
+  }
+  if (packageManagers.length) {
+    lines.push(`- Package managers: ${packageManagers.map((manager) => `${manager.name}${manager.version ? ` (${manager.version})` : ''}`).join(', ')}`);
   }
   lines.push('');
 
@@ -74,6 +80,13 @@ export function formatText(report: PreflightReport, verbose = false): string {
   lines.push(`- automation: ${fitColor(report.fit.automation)}`);
   lines.push(`- multi-agent: ${fitColor(report.fit.multiAgent)}`);
   lines.push(`- media: ${fitColor(report.fit.media)}`);
+  lines.push('');
+
+  lines.push(pc.bold('Score Breakdown'));
+  for (const item of report.scoreBreakdown.items) {
+    const maxSuffix = item.maxPoints != null ? ` / ${item.maxPoints}` : '';
+    lines.push(`- ${item.label}: ${item.points}${maxSuffix}${item.note ? ` — ${item.note}` : ''}`);
+  }
   lines.push('');
 
   lines.push(pc.bold('Windows Posture'));

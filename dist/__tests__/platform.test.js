@@ -16,7 +16,7 @@ function createHost(overrides = {}) {
         release: '14.0',
         arch: 'arm64',
         shell: '/bin/zsh',
-        nodeVersion: 'v22.0.0',
+        nodeVersion: 'v24.0.0',
         uptimeSec: 123,
         user: 'tester',
         packageManagers: [],
@@ -67,6 +67,10 @@ function createDependency(overrides) {
     const hint = (0, platform_1.getDependencyInstallHint)('ffmpeg', 'macos', [{ name: 'homebrew', detected: true, suggestions: [] }]);
     strict_1.default.equal(hint, 'brew install ffmpeg');
 });
+(0, node_test_1.default)('getDependencyInstallHint returns apt guidance on Linux when apt is present', () => {
+    const hint = (0, platform_1.getDependencyInstallHint)('python3', 'linux', [{ name: 'apt', detected: true, suggestions: [] }]);
+    strict_1.default.equal(hint, 'sudo apt-get install -y python3');
+});
 (0, node_test_1.default)('getDependencyInstallHint falls back to Homebrew installation guidance on macOS', () => {
     const hint = (0, platform_1.getDependencyInstallHint)('python3', 'macos', [{ name: 'homebrew', detected: false, installUrl: 'https://brew.sh', suggestions: [] }]);
     strict_1.default.match(hint || '', /Install Homebrew/);
@@ -91,5 +95,38 @@ function createDependency(overrides) {
     const result = (0, fit_1.assessFit)(host, hardware, dependencies, network, 'standard');
     strict_1.default.ok(result.warnings.some((warning) => warning.includes('Homebrew')));
     strict_1.default.ok(result.recommendations.some((recommendation) => recommendation.includes('Homebrew')));
+});
+(0, node_test_1.default)('assessFit can score above the 100-point standard with bonuses', () => {
+    const host = createHost({
+        packageManagers: [{ name: 'homebrew', detected: true, version: 'Homebrew 5.0.0', suggestions: [] }],
+    });
+    const hardware = createHardware({
+        cpuCores: 12,
+        totalMemoryBytes: 32 * 1024 * 1024 * 1024,
+        freeMemoryBytes: 20 * 1024 * 1024 * 1024,
+        diskFreeBytes: 200 * 1024 * 1024 * 1024,
+    });
+    const dependencies = [
+        createDependency({ name: 'node', command: 'node', importance: 'required' }),
+        createDependency({ name: 'npm', command: 'npm', importance: 'required' }),
+        createDependency({ name: 'git', command: 'git', importance: 'recommended' }),
+        createDependency({ name: 'python3', command: 'python3', importance: 'recommended' }),
+        createDependency({ name: 'ffmpeg', command: 'ffmpeg', importance: 'recommended' }),
+        createDependency({ name: 'uv', command: 'uv', importance: 'optional' }),
+        createDependency({ name: 'docker', command: 'docker', importance: 'optional' }),
+        createDependency({ name: 'openclaw', command: 'openclaw', importance: 'optional' }),
+    ];
+    const network = [
+        { name: 'dns-openclaw-ai', target: 'openclaw.ai', ok: true, latencyMs: 10 },
+        { name: 'dns-github-com', target: 'github.com', ok: true, latencyMs: 10 },
+        { name: 'https-github-com', target: 'https://github.com', ok: true, latencyMs: 100, statusCode: 200 },
+        { name: 'https-openclaw-ai', target: 'https://openclaw.ai', ok: true, latencyMs: 100, statusCode: 200 },
+        { name: 'https-www-google-com', target: 'https://www.google.com', ok: true, latencyMs: 100, statusCode: 200 },
+    ];
+    const result = (0, fit_1.assessFit)(host, hardware, dependencies, network, 'media');
+    strict_1.default.equal(result.standardMax, 100);
+    strict_1.default.ok(result.rawScore >= 95);
+    strict_1.default.ok(result.score > 100);
+    strict_1.default.ok(result.bonusPoints > 0);
 });
 //# sourceMappingURL=platform.test.js.map

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectOsFamily = detectOsFamily;
 exports.formatOsLabel = formatOsLabel;
 exports.detectHomebrew = detectHomebrew;
+exports.detectPackageManagers = detectPackageManagers;
 exports.buildWindowsPosture = buildWindowsPosture;
 exports.getDependencyInstallHint = getDependencyInstallHint;
 const node_os_1 = __importDefault(require("node:os"));
@@ -58,6 +59,47 @@ async function detectHomebrew(osFamily) {
             'After Homebrew is installed, rerun this tool to unlock brew-based install suggestions.',
         ],
     };
+}
+async function detectLinuxPackageManagers(osFamily) {
+    if (osFamily !== 'linux')
+        return [];
+    const specs = [
+        { name: 'apt', command: 'apt', args: ['--version'], suggestion: 'APT detected; prefer apt-based install guidance on this host.' },
+        { name: 'dnf', command: 'dnf', args: ['--version'], suggestion: 'DNF detected; prefer dnf-based install guidance on this host.' },
+        { name: 'yum', command: 'yum', args: ['--version'], suggestion: 'YUM detected; prefer yum-based install guidance on this host.' },
+        { name: 'pacman', command: 'pacman', args: ['--version'], suggestion: 'Pacman detected; prefer pacman-based install guidance on this host.' },
+    ];
+    const results = await Promise.all(specs.map(async (spec) => {
+        const result = await (0, exec_1.runCommand)(spec.command, spec.args, 3000);
+        return {
+            name: spec.name,
+            detected: result.ok,
+            version: result.ok ? firstLine(result.stdout || result.stderr) : undefined,
+            suggestions: result.ok ? [spec.suggestion] : [],
+        };
+    }));
+    return results.filter((entry) => entry.detected);
+}
+async function detectWindowsPackageManagers(osFamily) {
+    if (osFamily !== 'windows')
+        return [];
+    const winget = await (0, exec_1.runCommand)('winget', ['--version'], 3000);
+    return [
+        {
+            name: 'winget',
+            detected: winget.ok,
+            version: winget.ok ? firstLine(winget.stdout || winget.stderr) : undefined,
+            suggestions: winget.ok ? ['winget detected; prefer winget-based install guidance on this host.'] : [],
+        },
+    ];
+}
+async function detectPackageManagers(osFamily) {
+    const [homebrew, linuxManagers, windowsManagers] = await Promise.all([
+        detectHomebrew(osFamily),
+        detectLinuxPackageManagers(osFamily),
+        detectWindowsPackageManagers(osFamily),
+    ]);
+    return [homebrew, ...linuxManagers, ...windowsManagers].filter(Boolean);
 }
 async function detectWindowsAdmin() {
     const command = [
@@ -123,12 +165,23 @@ async function buildWindowsPosture(osFamily) {
 }
 function getDependencyInstallHint(dependencyName, osFamily, packageManagers) {
     const brew = packageManagers.find((manager) => manager.name === 'homebrew');
+    const apt = packageManagers.find((manager) => manager.name === 'apt');
+    const dnf = packageManagers.find((manager) => manager.name === 'dnf');
+    const yum = packageManagers.find((manager) => manager.name === 'yum');
+    const pacman = packageManagers.find((manager) => manager.name === 'pacman');
     const macBrewPackages = {
         git: 'git',
         python3: 'python',
         ffmpeg: 'ffmpeg',
         uv: 'uv',
         docker: '--cask docker',
+    };
+    const linuxPackages = {
+        git: { apt: 'git', dnf: 'git', yum: 'git', pacman: 'git' },
+        python3: { apt: 'python3', dnf: 'python3', yum: 'python3', pacman: 'python' },
+        ffmpeg: { apt: 'ffmpeg', dnf: 'ffmpeg', yum: 'ffmpeg', pacman: 'ffmpeg' },
+        uv: { apt: 'uv', dnf: 'uv', yum: 'uv', pacman: 'uv' },
+        docker: { apt: 'docker.io', dnf: 'docker', yum: 'docker', pacman: 'docker' },
     };
     const windowsWingetPackages = {
         node: 'OpenJS.NodeJS.LTS',
@@ -148,6 +201,22 @@ function getDependencyInstallHint(dependencyName, osFamily, packageManagers) {
             return `brew install ${brewPackage}`;
         }
         return `Install Homebrew from ${HOMEBREW_INSTALL_URL}, then run: brew install ${brewPackage}`;
+    }
+    if (osFamily === 'linux') {
+        if (dependencyName === 'openclaw')
+            return 'Install OpenClaw after the required Linux prerequisites are present.';
+        const linuxPackage = linuxPackages[dependencyName];
+        if (!linuxPackage)
+            return undefined;
+        if (apt?.detected && linuxPackage.apt)
+            return `sudo apt-get install -y ${linuxPackage.apt}`;
+        if (dnf?.detected && linuxPackage.dnf)
+            return `sudo dnf install -y ${linuxPackage.dnf}`;
+        if (yum?.detected && linuxPackage.yum)
+            return `sudo yum install -y ${linuxPackage.yum}`;
+        if (pacman?.detected && linuxPackage.pacman)
+            return `sudo pacman -S --needed ${linuxPackage.pacman}`;
+        return 'Install the missing dependency with your distro package manager and rerun preflight.';
     }
     if (osFamily === 'windows') {
         if (dependencyName === 'openclaw')

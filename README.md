@@ -124,6 +124,8 @@ src/
 - Dependency rows can include platform-aware install hints
 - The text report surfaces a Windows posture section even when running on a non-Windows machine
 - JSON output carries the same richer host metadata for downstream tooling or future UI layers
+- Scoring now uses a documented 100-point standard baseline, with bonus points allowed above 100 for unusually strong hosts
+- The score breakdown explains exactly where points came from and why
 
 ## Current scope
 

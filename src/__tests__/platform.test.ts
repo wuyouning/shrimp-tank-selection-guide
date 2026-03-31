@@ -13,7 +13,7 @@ function createHost(overrides: Partial<HostInfo> = {}): HostInfo {
     release: '14.0',
     arch: 'arm64',
     shell: '/bin/zsh',
-    nodeVersion: 'v22.0.0',
+    nodeVersion: 'v24.0.0',
     uptimeSec: 123,
     user: 'tester',
     packageManagers: [],
@@ -69,6 +69,11 @@ test('getDependencyInstallHint returns brew commands for supported macOS depende
   assert.equal(hint, 'brew install ffmpeg');
 });
 
+test('getDependencyInstallHint returns apt guidance on Linux when apt is present', () => {
+  const hint = getDependencyInstallHint('python3', 'linux', [{ name: 'apt', detected: true, suggestions: [] }]);
+  assert.equal(hint, 'sudo apt-get install -y python3');
+});
+
 test('getDependencyInstallHint falls back to Homebrew installation guidance on macOS', () => {
   const hint = getDependencyInstallHint('python3', 'macos', [{ name: 'homebrew', detected: false, installUrl: 'https://brew.sh', suggestions: [] }]);
   assert.match(hint || '', /Install Homebrew/);
@@ -97,4 +102,40 @@ test('assessFit warns when Homebrew is missing on macOS', () => {
 
   assert.ok(result.warnings.some((warning) => warning.includes('Homebrew')));
   assert.ok(result.recommendations.some((recommendation) => recommendation.includes('Homebrew')));
+});
+
+test('assessFit can score above the 100-point standard with bonuses', () => {
+  const host = createHost({
+    packageManagers: [{ name: 'homebrew', detected: true, version: 'Homebrew 5.0.0', suggestions: [] }],
+  });
+  const hardware = createHardware({
+    cpuCores: 12,
+    totalMemoryBytes: 32 * 1024 * 1024 * 1024,
+    freeMemoryBytes: 20 * 1024 * 1024 * 1024,
+    diskFreeBytes: 200 * 1024 * 1024 * 1024,
+  });
+  const dependencies: DependencyResult[] = [
+    createDependency({ name: 'node', command: 'node', importance: 'required' }),
+    createDependency({ name: 'npm', command: 'npm', importance: 'required' }),
+    createDependency({ name: 'git', command: 'git', importance: 'recommended' }),
+    createDependency({ name: 'python3', command: 'python3', importance: 'recommended' }),
+    createDependency({ name: 'ffmpeg', command: 'ffmpeg', importance: 'recommended' }),
+    createDependency({ name: 'uv', command: 'uv', importance: 'optional' }),
+    createDependency({ name: 'docker', command: 'docker', importance: 'optional' }),
+    createDependency({ name: 'openclaw', command: 'openclaw', importance: 'optional' }),
+  ];
+  const network: NetworkCheckResult[] = [
+    { name: 'dns-openclaw-ai', target: 'openclaw.ai', ok: true, latencyMs: 10 },
+    { name: 'dns-github-com', target: 'github.com', ok: true, latencyMs: 10 },
+    { name: 'https-github-com', target: 'https://github.com', ok: true, latencyMs: 100, statusCode: 200 },
+    { name: 'https-openclaw-ai', target: 'https://openclaw.ai', ok: true, latencyMs: 100, statusCode: 200 },
+    { name: 'https-www-google-com', target: 'https://www.google.com', ok: true, latencyMs: 100, statusCode: 200 },
+  ];
+
+  const result = assessFit(host, hardware, dependencies, network, 'media');
+
+  assert.equal(result.standardMax, 100);
+  assert.ok(result.rawScore >= 95);
+  assert.ok(result.score > 100);
+  assert.ok(result.bonusPoints > 0);
 });

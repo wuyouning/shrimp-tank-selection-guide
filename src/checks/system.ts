@@ -1,6 +1,6 @@
 import os from 'node:os';
 import { HostInfo } from '../types';
-import { buildWindowsPosture, detectHomebrew, detectOsFamily, formatOsLabel } from '../utils/platform';
+import { buildWindowsPosture, detectOsFamily, detectPackageManagers, formatOsLabel } from '../utils/platform';
 
 function safeUptime(): number {
   try {
@@ -14,7 +14,7 @@ export async function getHostInfo(): Promise<HostInfo> {
   const platform = os.platform();
   const release = os.release();
   const osFamily = detectOsFamily(platform);
-  const [homebrew, windows] = await Promise.all([detectHomebrew(osFamily), buildWindowsPosture(osFamily)]);
+  const [packageManagers, windows] = await Promise.all([detectPackageManagers(osFamily), buildWindowsPosture(osFamily)]);
 
   return {
     hostname: os.hostname(),
@@ -27,7 +27,7 @@ export async function getHostInfo(): Promise<HostInfo> {
     nodeVersion: process.version,
     uptimeSec: safeUptime(),
     user: process.env.USER || process.env.LOGNAME || process.env.USERNAME,
-    packageManagers: homebrew ? [homebrew] : [],
+    packageManagers,
     windows,
   };
 }
