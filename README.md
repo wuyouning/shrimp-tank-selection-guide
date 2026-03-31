@@ -2,57 +2,67 @@
 
 [中文版](./README.zh-CN.md) | English
 
-A local TypeScript/Node CLI for checking whether a host machine is a good fit for running OpenClaw.
+A release-ready CLI for checking whether a machine is a good host for OpenClaw.
 
 If OpenClaw is the shrimp, this tool helps you judge whether the tank is ready.
-
-## What it does
-
-- Collects host and hardware information
-- Checks key dependencies such as Node, npm, git, python3, ffmpeg, uv, docker, and openclaw
-- Runs basic DNS and outbound HTTPS checks
-- Grades the machine for different OpenClaw usage profiles
-- Detects macOS Homebrew and turns missing dependency checks into actionable install hints
-- Carries a Windows readiness posture in the report, including elevation and admin guidance
-- Produces both a human-readable terminal report and structured JSON output
 
 ## Why this exists
 
 Before installing OpenClaw on a machine, it helps to know:
 
-- whether the system has the right runtime and tooling
-- whether network access looks healthy enough
-- whether the machine is a good fit for light, standard, media, or multi-agent workloads
-- whether the environment is likely to need extra setup before OpenClaw will feel stable
+- whether the runtime and core tooling are ready
+- whether the host has enough hardware headroom
+- whether the current machine state is healthy enough right now
+- whether the system is better suited for light, standard, media, or multi-agent workloads
 
-This project is meant to be a practical preflight checker: something you can run quickly and get both a readable answer and machine-consumable output.
+This project turns those questions into a single CLI with a readable terminal report and structured JSON output.
 
-## Profiles
+## What it checks
 
-- `light`: chat, docs, light automation
-- `standard`: balanced default profile
-- `media`: image, video, and audio oriented workloads
-- `multi-agent`: heavier concurrent agent-style usage
+- Runtime readiness: Node, package managers, install-critical dependencies
+- Host hardware: RAM, CPU concurrency, disk headroom
+- Real-time conditions: current network reachability, free memory, current load
+- Platform-specific readiness: macOS Homebrew, Linux package managers, Windows posture/admin hints
+- OpenClaw fit: chat, automation, media, and multi-agent usage profiles
+
+## Scoring model
+
+This project treats **100 points as the standard host baseline** for OpenClaw.
+
+The baseline is split into:
+
+- **Software score** — runtime, dependencies, platform readiness
+- **Hardware score** — RAM capacity, CPU concurrency, disk headroom
+- **Real-time fluctuation score** — current network condition, free memory, current load
+
+Strong hosts can earn **bonus points**, so the final score may go above 100.
+
+That makes the result easier to interpret:
+
+- high hardware + weak real-time score → good machine, but currently busy or network-constrained
+- weak software score → capable machine, but environment not ready yet
+- bonus points → distinguishes acceptable hosts from excellent ones
 
 ## Install
 
 ```bash
-npm install
+npm install -g openclaw-preflight
 ```
 
-## Easier local CLI use
-
-If you want a ready-to-run CLI on your machine without manually typing `node dist/cli.js`, install it globally from the project folder:
-
-```bash
-npm run install:global-local
-```
-
-Then you can run either command directly:
+Then run:
 
 ```bash
 openclaw-preflight --lang en
+# or
 shrimp-tank --lang zh-CN
+```
+
+## Easier local development use
+
+From the project folder:
+
+```bash
+npm run install:global-local
 ```
 
 To remove the local global install later:
@@ -61,9 +71,54 @@ To remove the local global install later:
 npm run uninstall:global-local
 ```
 
-## Release-ready packaging
+## CLI examples
 
-This project is now set up like a publishable npm CLI:
+```bash
+openclaw-preflight --lang en
+openclaw-preflight --lang zh-CN --profile media
+openclaw-preflight --json --lang en
+openclaw-preflight --json --output report.json --lang zh-CN
+shrimp-tank --lang zh-CN --profile multi-agent
+```
+
+## Language selection
+
+```bash
+openclaw-preflight --lang en
+openclaw-preflight --lang zh-CN
+```
+
+- Text output follows the selected language.
+- JSON output includes a `language` field so downstream tooling can stay in sync.
+
+## Profiles
+
+- `light`: chat, docs, light automation
+- `standard`: balanced default profile
+- `media`: image, video, and audio oriented workloads
+- `multi-agent`: heavier concurrent agent-style usage
+
+## Platform notes
+
+- `macOS`: detects Homebrew, reports its version when present, and suggests `brew install ...` commands for missing dependencies when possible.
+- `Windows`: includes a Windows posture section and admin/elevation guidance. If the CLI runs on Windows, it attempts a safe PowerShell-based elevation check.
+- `Linux`: supports generic core checks plus package-manager-aware install hints for apt, dnf, yum, and pacman environments.
+
+## JSON output
+
+```bash
+openclaw-preflight --json
+```
+
+The JSON report includes:
+
+- summary status and score
+- software / hardware / real-time score split
+- bonus points
+- dependency and network results
+- score breakdown for downstream tooling or future UI layers
+
+## Release-ready packaging
 
 ```bash
 npm run release:check
@@ -83,151 +138,26 @@ The release tarball keeps only the runtime assets needed by end users:
 
 ## Publish path
 
-When you're ready to publish for real, the standard flow is:
+When you're ready to publish for real:
 
 ```bash
 npm login
 npm publish --access public
 ```
 
-After publishing, users can install it with:
+## Project strength today
 
-```bash
-npm install -g openclaw-preflight
-```
+This tool is already good at:
 
-## Platform notes
-
-- `macOS`: detects Homebrew, reports its version when present, and suggests `brew install ...` commands for missing dependencies when possible.
-- `Windows`: includes a Windows posture section and admin/elevation guidance. If the CLI runs on Windows, it attempts a safe PowerShell-based elevation check.
-- `Linux`: supported for the current core checks and scoring path, with generic dependency detection and networking checks.
-
-## Run in dev mode
-
-```bash
-npm run dev
-npm run dev -- --verbose
-npm run dev -- --json
-npm run dev -- --json --output examples/report.json
-npm run dev -- --profile media
-npm run dev -- --profile multi-agent --timeout 8
-```
-
-## Build and run
-
-```bash
-npm run build
-npm start -- --profile standard
-```
-
-## Verify locally
-
-```bash
-npm run build
-npm test
-npm start -- --verbose
-```
-
-## Planned packaged command
-
-```bash
-openclaw-preflight
-```
-
-## CLI flags
-
-```bash
---json                 output JSON
---output <path>        write output to file
---verbose              show more detail
---timeout <seconds>    network timeout in seconds
---profile <profile>    light | standard | media | multi-agent
---lang <lang>          en | zh-CN
-```
-
-## Language selection
-
-Users can choose the output language explicitly:
-
-```bash
-npm start -- --lang en
-npm start -- --lang zh-CN
-```
-
-- Text output follows the selected language.
-- JSON output also includes a `language` field so downstream tooling can stay in sync.
-
-## Exit codes
-
-- `0`: PASS or PASS_WITH_WARNINGS
-- `1`: LIMITED
-- `2`: FAIL or runtime error
-
-## Output categories
-
-- `PASS`
-- `PASS_WITH_WARNINGS`
-- `LIMITED`
-- `FAIL`
-
-## Example output
-
-See:
-- `examples/sample-report.json`
-- `examples/report.json` after a local run
-
-## Project structure
-
-```text
-src/
-  __tests__/
-  checks/
-  formatters/
-  utils/
-  cli.ts
-```
-
-## Reporting highlights
-
-- Host summary includes OS family, normalized OS label, package-manager metadata, and Windows posture details
-- Dependency rows can include platform-aware install hints
-- The text report surfaces a Windows posture section even when running on a non-Windows machine
-- JSON output carries the same richer host metadata for downstream tooling or future UI layers
-- Scoring now uses a documented 100-point standard baseline, with bonus points allowed above 100 for unusually strong hosts
-- Scores are split into software score, hardware score, and real-time fluctuation score
-- The score breakdown explains exactly where points came from and why, in the selected language
-
-## Current scope
-
-The tool currently focuses on:
-
-- macOS, Linux, and Windows-aware reporting posture
-- rule-based readiness scoring
-- dependency readiness checks
-- basic network validation
-- OpenClaw workload fit recommendation
-
-## Scoring methodology
-
-This project treats **100 points as the standard host baseline** for OpenClaw.
-
-That baseline is intentionally split into three parts:
-
-- **Software score** — runtime, install-critical dependencies, and platform readiness
-- **Hardware score** — RAM capacity, CPU concurrency, and disk headroom
-- **Real-time fluctuation score** — current network condition, currently free memory, and current system load
-
-On top of that, strong hosts can earn **bonus points** for clearly exceeding the standard baseline, so the final score may go above 100.
-
-This makes the report easier to interpret:
-
-- a high hardware score but weak real-time score usually means the machine is fundamentally good, but currently busy or network-constrained
-- a weak software score means the machine may be physically capable, but still under-prepared for OpenClaw
-- bonus points help distinguish merely acceptable hosts from excellent ones
+- host readiness scoring
+- dependency and package-manager hints
+- bilingual terminal output
+- human-readable plus machine-readable reporting
+- local install and release-style packaging
 
 ## Good next steps
 
-- richer Linux distro and package-manager detection
-- optional GPU and media acceleration detection
-- more granular OpenClaw-specific gateway and node checks
-- a doctor mode that can optionally apply fixes or print full fix scripts by platform
+- richer Linux distro detection
+- GPU / media acceleration detection
+- more granular OpenClaw gateway and node checks
+- a doctor mode that can print or apply fix scripts by platform

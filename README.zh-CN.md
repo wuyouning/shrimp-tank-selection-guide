@@ -2,58 +2,68 @@
 
 中文版 | [English](./README.md)
 
-一个本地 TypeScript / Node CLI，用来判断一台宿主机是否适合运行 OpenClaw。
+一个面向发布的 CLI 工具，用来判断一台机器是否适合成为 OpenClaw 的宿主机。
 
 如果把 OpenClaw 理解成“虾”，那这个工具做的事，就是帮你判断这个“缸”适不适合养它。
-
-## 它能做什么
-
-- 收集宿主机与硬件基础信息
-- 检查关键依赖，例如 Node、npm、git、python3、ffmpeg、uv、docker、openclaw
-- 执行基础 DNS 和外网 HTTPS 连通性检查
-- 按不同 OpenClaw 使用场景给出适配度评分
-- 在 macOS 上识别 Homebrew，并为缺失依赖给出可执行的安装提示
-- 在报告中提供 Windows 权限 / 管理员姿态信息
-- 同时输出适合人看的终端报告，以及适合程序读取的 JSON 结果
 
 ## 为什么要做这个
 
 在把 OpenClaw 装到一台机器之前，通常会先想清楚几件事：
 
-- 这台机器的运行时和基础工具是否齐全
-- 网络环境是不是足够健康
-- 它更适合轻量聊天，还是更适合媒体处理、多 agent 之类的重负载场景
-- 是否还需要补一轮环境配置，OpenClaw 才能稳定运行
+- 运行时和核心依赖是否准备好了
+- 宿主机硬件余量够不够
+- 当前机器状态是否健康，适不适合现在就上
+- 这台机器更适合轻量、标准、媒体型，还是多 Agent 场景
 
-这个项目的目标，就是做一个真正能落地的 preflight 检查器：
-既能快速告诉你“这台机器行不行”，也能把结果结构化输出，方便后续接 UI、Doctor 模式或其他自动化流程。
+这个项目把这些问题收束成一个 CLI：
+既能给人看得懂的终端报告，也能输出结构化 JSON 给后续 UI / Doctor / 自动化流程使用。
 
-## 适配档位（Profiles）
+## 它会检查什么
 
-- `light`：聊天、文档、轻量自动化
-- `standard`：默认均衡档
-- `media`：偏图片、视频、音频处理场景
-- `multi-agent`：偏多 agent 并发运行场景
+- 运行时准备度：Node、包管理器、安装关键依赖
+- 宿主机硬件：内存容量、CPU 并发能力、磁盘余量
+- 实时状态：当前网络连通性、当前空闲内存、当前系统负载
+- 平台准备度：macOS Homebrew、Linux 包管理器、Windows 姿态 / 管理员提示
+- OpenClaw 适配度：聊天、自动化、媒体、多 Agent 档位
+
+## 评分模型
+
+这个项目把 **100 分** 定义为 OpenClaw 宿主机的**标准基线满分**。
+
+这 100 分会被拆成：
+
+- **软件分**：运行时、依赖、平台准备度
+- **硬件分**：内存容量、CPU 并发能力、磁盘余量
+- **实时波动分**：当前网络状态、当前空闲内存、当前系统负载
+
+在这三部分之上，如果宿主机明显优于标准线，还会获得**奖励分**，所以最终得分可以超过 100 分。
+
+这样做的好处是：
+
+- 硬件分高但实时波动分低，通常说明机器本身不差，只是当前占用或网络状态不好
+- 软件分低，通常说明机器物理条件还可以，但运行环境没准备好
+- 奖励分可以区分“够用”和“明显优秀”的宿主机
 
 ## 安装
 
 ```bash
-npm install
+npm install -g openclaw-preflight
 ```
 
-## 更省事的本地 CLI 用法
+安装完成后可以直接运行：
 
-如果你想把它装成机器上可直接运行的 CLI，而不是每次都手动敲 `node dist/cli.js`，可以在项目目录里执行：
+```bash
+openclaw-preflight --lang zh-CN
+# 或者
+shrimp-tank --lang en
+```
+
+## 更省事的本地开发用法
+
+如果你在项目目录里直接开发和测试，可以执行：
 
 ```bash
 npm run install:global-local
-```
-
-安装完成后，你可以直接运行这两个命令中的任意一个：
-
-```bash
-openclaw-preflight --lang en
-shrimp-tank --lang zh-CN
 ```
 
 如果之后想卸载这个本地全局 CLI：
@@ -62,9 +72,54 @@ shrimp-tank --lang zh-CN
 npm run uninstall:global-local
 ```
 
-## 面向发布的打包方式
+## CLI 示例
 
-现在这个项目已经整理成更像正式 npm CLI 的发布结构了：
+```bash
+openclaw-preflight --lang zh-CN
+openclaw-preflight --lang en --profile media
+openclaw-preflight --json --lang zh-CN
+openclaw-preflight --json --output report.json --lang en
+shrimp-tank --lang zh-CN --profile multi-agent
+```
+
+## 语言选择
+
+```bash
+openclaw-preflight --lang en
+openclaw-preflight --lang zh-CN
+```
+
+- 终端文本输出会跟随所选语言。
+- JSON 输出里也会带上 `language` 字段，方便后续链路保持一致。
+
+## 档位（Profiles）
+
+- `light`：聊天、文档、轻量自动化
+- `standard`：默认均衡档
+- `media`：图片、视频、音频等媒体型场景
+- `multi-agent`：更重的并发 Agent 场景
+
+## 平台说明
+
+- `macOS`：会检测 Homebrew；如果存在，会显示版本；若缺依赖，会尽量给出 `brew install ...` 的明确提示。
+- `Windows`：报告会带出 Windows posture 和管理员 / 提权建议；如果工具运行在 Windows 上，还会尝试安全的 PowerShell 提权状态检查。
+- `Linux`：支持核心检查，并对 apt、dnf、yum、pacman 这类环境提供更贴近包管理器的安装建议。
+
+## JSON 输出
+
+```bash
+openclaw-preflight --json
+```
+
+JSON 报告里会包含：
+
+- summary 状态和总分
+- 软件分 / 硬件分 / 实时波动分
+- 奖励分
+- 依赖与网络检查结果
+- 详细评分拆解，方便接后续 UI 或自动化流程
+
+## 面向发布的打包方式
 
 ```bash
 npm run release:check
@@ -91,144 +146,19 @@ npm login
 npm publish --access public
 ```
 
-发布完成后，用户就可以直接这样安装：
+## 当前这个项目最强的地方
 
-```bash
-npm install -g openclaw-preflight
-```
+现在它已经比较擅长：
 
-## 平台说明
-
-- `macOS`：会检测 Homebrew；如果存在，会显示版本；若缺依赖，会尽量给出 `brew install ...` 的明确提示。
-- `Windows`：报告会带出 Windows posture 和管理员 / 提权建议；若工具运行在 Windows 上，还会尝试进行安全的 PowerShell 提权状态检查。
-- `Linux`：当前已支持核心检查与评分流程，包含通用依赖检查和网络检查。
-
-## 开发模式运行
-
-```bash
-npm run dev
-npm run dev -- --verbose
-npm run dev -- --json
-npm run dev -- --json --output examples/report.json
-npm run dev -- --profile media
-npm run dev -- --profile multi-agent --timeout 8
-```
-
-## 构建与运行
-
-```bash
-npm run build
-npm start -- --profile standard
-```
-
-## 本地验证
-
-```bash
-npm run build
-npm test
-npm start -- --verbose
-```
-
-## 计划中的打包命令
-
-```bash
-openclaw-preflight
-```
-
-## CLI 参数
-
-```bash
---json                 输出 JSON
---output <path>        将结果写入文件
---verbose              显示更多细节
---timeout <seconds>    网络检查超时秒数
---profile <profile>    light | standard | media | multi-agent
---lang <lang>          en | zh-CN
-```
-
-## 语言选择
-
-用户可以显式选择输出语言：
-
-```bash
-npm start -- --lang en
-npm start -- --lang zh-CN
-```
-
-- 终端文本输出会跟随所选语言。
-- JSON 输出里也会带上 `language` 字段，方便后续 UI / Doctor / 自动化链路保持一致。
-
-## 退出码
-
-- `0`：PASS 或 PASS_WITH_WARNINGS
-- `1`：LIMITED
-- `2`：FAIL 或运行时错误
-
-## 输出状态
-
-- `PASS`
-- `PASS_WITH_WARNINGS`
-- `LIMITED`
-- `FAIL`
-
-## 示例输出
-
-见：
-- `examples/sample-report.json`
-- 本地运行后生成的 `examples/report.json`
-
-## 项目结构
-
-```text
-src/
-  __tests__/
-  checks/
-  formatters/
-  utils/
-  cli.ts
-```
-
-## 当前报告亮点
-
-- Host 摘要中包含 OS family、标准化 OS label、包管理器元数据，以及 Windows posture 信息
-- 依赖项可以带平台感知的安装提示
-- 即使当前运行环境不是 Windows，文本报告里也会提前展示 Windows 姿态信息
-- JSON 输出携带同样完整的结构，方便后续接入 UI 或自动化能力
-- 评分机制改成了“100 分是标准满分，但优秀宿主机可以超过 100 分”
-- 分数会拆成软件分、硬件分、实时波动分，并额外显示奖励分
-- 报告会给出详细评分拆解，而且会跟随所选语言完整本地化
-
-## 当前范围
-
-这个工具当前聚焦在：
-
-- macOS / Linux / Windows 感知式报告结构
-- 基于规则的 readiness 评分
-- 依赖准备度检查
-- 基础网络验证
-- OpenClaw 工作负载适配建议
-
-## 评分方法论
-
-这个项目把 **100 分** 定义为 OpenClaw 宿主机的**标准基线满分**。
-
-这 100 分会被拆成三部分：
-
-- **软件分**：运行时、安装关键依赖、平台准备度
-- **硬件分**：内存容量、CPU 并发能力、磁盘余量
-- **实时波动分**：当前网络状态、当前空闲内存、当前系统负载
-
-在这三部分之上，如果宿主机明显优于标准线，还会获得**奖励分**，所以最终得分可以超过 100 分。
-
-这样做的好处是：
-
-- 如果硬件分很高、实时波动分偏低，通常说明这台机器本身不差，只是当前网络或占用状态不好
-- 如果软件分偏低，通常说明机器物理条件可以，但运行环境还没准备好
-- 奖励分则用来区分“勉强够用”和“明显优秀”的宿主机
+- 宿主机准备度评分
+- 依赖和包管理器安装提示
+- 中英双语终端输出
+- 人类可读 + 机器可读两套报告
+- 本地安装与发布式打包流程
 
 ## 接下来值得继续补的方向
 
-- 更细的 Linux 发行版和包管理器识别
-- 可选的 GPU / 媒体加速能力检测
+- 更细的 Linux 发行版识别
+- GPU / 媒体加速检测
 - 更细粒度的 OpenClaw gateway / node 检查
-- 更完整的 Doctor 模式：不仅提示问题，还能按平台输出修复脚本，甚至进一步支持修复建议执行
+- 更完整的 doctor / repair 模式

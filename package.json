@@ -1,7 +1,7 @@
 {
   "name": "openclaw-preflight",
   "version": "1.0.0",
-  "description": "Help users judge whether their shrimp tank setup is suitable for use.",
+  "description": "A host readiness CLI for OpenClaw that scores whether a machine is suitable for installation and day-to-day use.",
   "main": "dist/cli.js",
   "bin": {
     "openclaw-preflight": "dist/cli.js",
@@ -30,14 +30,15 @@
     "release:check": "npm run clean && npm test && npm pack"
   },
   "keywords": [
-    "shrimp-tank",
-    "aquarium",
-    "guide",
-    "selection",
-    "evaluation",
     "openclaw",
     "preflight",
-    "cli"
+    "cli",
+    "host-readiness",
+    "environment-check",
+    "installation-check",
+    "system-diagnostics",
+    "developer-tools",
+    "shrimp-tank"
   ],
   "author": "Wu Ruidong",
   "license": "MIT",
