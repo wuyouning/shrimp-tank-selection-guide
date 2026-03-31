@@ -1,0 +1,58 @@
+{
+  "tool": "openclaw-preflight",
+  "version": "0.1.0",
+  "timestamp": "2026-03-31T03:00:00+08:00",
+  "profile": "standard",
+  "summary": {
+    "status": "PASS_WITH_WARNINGS",
+    "score": 80
+  },
+  "host": {
+    "hostname": "example-host",
+    "platform": "darwin",
+    "release": "25.3.0",
+    "arch": "x64",
+    "shell": "/bin/zsh",
+    "nodeVersion": "v24.14.0",
+    "uptimeSec": 12345
+  },
+  "hardware": {
+    "cpuModel": "Example CPU",
+    "cpuCores": 8,
+    "totalMemoryBytes": 17179869184,
+    "freeMemoryBytes": 4294967296,
+    "diskFreeBytes": 107374182400,
+    "diskTotalBytes": 512000000000
+  },
+  "dependencies": [
+    {
+      "name": "node",
+      "command": "node",
+      "importance": "required",
+      "installed": true,
+      "version": "v24.14.0"
+    }
+  ],
+  "network": {
+    "checks": [
+      {
+        "name": "dns-openclaw",
+        "target": "openclaw.ai",
+        "ok": true,
+        "latencyMs": 12
+      }
+    ]
+  },
+  "fit": {
+    "chat": "good",
+    "automation": "good",
+    "multiAgent": "limited",
+    "media": "limited"
+  },
+  "warnings": [
+    "网络检查存在部分失败项。"
+  ],
+  "recommendations": [
+    "检查出站 HTTPS 与 DNS 设置。"
+  ]
+}

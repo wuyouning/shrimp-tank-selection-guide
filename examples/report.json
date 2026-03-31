@@ -1,0 +1,171 @@
+{
+  "tool": "openclaw-preflight",
+  "version": "1.0.0",
+  "timestamp": "2026-03-30T19:37:01.527Z",
+  "profile": "standard",
+  "summary": {
+    "status": "PASS_WITH_WARNINGS",
+    "score": 70
+  },
+  "host": {
+    "hostname": "MartindeMacBook-Pro.local",
+    "platform": "darwin",
+    "osFamily": "macos",
+    "osLabel": "macOS 25.3.0",
+    "release": "25.3.0",
+    "arch": "x64",
+    "shell": "/bin/zsh",
+    "nodeVersion": "v24.14.0",
+    "uptimeSec": 0,
+    "user": "martin",
+    "packageManagers": [
+      {
+        "name": "homebrew",
+        "detected": true,
+        "version": "Homebrew 5.1.1",
+        "suggestions": []
+      }
+    ],
+    "windows": {
+      "runningOnWindows": false,
+      "admin": {
+        "canEvaluate": false,
+        "method": "not-applicable",
+        "details": "Current session is not running on Windows."
+      },
+      "recommendations": [
+        "For Windows installs, prefer an elevated PowerShell session for dependency setup.",
+        "Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg."
+      ],
+      "notes": [
+        "Windows-specific elevation checks are skipped when the CLI is not running on Windows."
+      ]
+    }
+  },
+  "hardware": {
+    "cpuModel": "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz",
+    "cpuCores": 12,
+    "totalMemoryBytes": 17179869184,
+    "freeMemoryBytes": 182517760,
+    "loadAverage": [
+      3.9482421875,
+      3.6728515625,
+      3.4033203125
+    ],
+    "diskFreeBytes": 320483987456,
+    "diskTotalBytes": 1000240963584
+  },
+  "dependencies": [
+    {
+      "name": "node",
+      "command": "node",
+      "importance": "required",
+      "installed": true,
+      "version": "v24.14.0"
+    },
+    {
+      "name": "npm",
+      "command": "npm",
+      "importance": "required",
+      "installed": true,
+      "version": "11.9.0"
+    },
+    {
+      "name": "git",
+      "command": "git",
+      "importance": "recommended",
+      "installed": true,
+      "version": "git version 2.50.1 (Apple Git-155)"
+    },
+    {
+      "name": "python3",
+      "command": "python3",
+      "importance": "recommended",
+      "installed": true,
+      "version": "Python 3.9.6"
+    },
+    {
+      "name": "ffmpeg",
+      "command": "ffmpeg",
+      "importance": "recommended",
+      "installed": true,
+      "version": "ffmpeg version 8.0.1 Copyright (c) 2000-2025 the FFmpeg developers"
+    },
+    {
+      "name": "uv",
+      "command": "uv",
+      "importance": "optional",
+      "installed": false,
+      "error": "Command not available",
+      "installHint": "brew install uv"
+    },
+    {
+      "name": "docker",
+      "command": "docker",
+      "importance": "optional",
+      "installed": false,
+      "error": "Command not available",
+      "installHint": "brew install --cask docker"
+    },
+    {
+      "name": "openclaw",
+      "command": "openclaw",
+      "importance": "optional",
+      "installed": true,
+      "version": "OpenClaw 2026.3.28 (f9b1079)"
+    }
+  ],
+  "network": {
+    "checks": [
+      {
+        "name": "dns-openclaw-ai",
+        "target": "openclaw.ai",
+        "ok": false,
+        "latencyMs": 13,
+        "error": "getaddrinfo ENOTFOUND openclaw.ai"
+      },
+      {
+        "name": "dns-github-com",
+        "target": "github.com",
+        "ok": false,
+        "latencyMs": 2,
+        "error": "getaddrinfo ENOTFOUND github.com"
+      },
+      {
+        "name": "https-github-com",
+        "target": "https://github.com",
+        "ok": false,
+        "latencyMs": 58,
+        "error": "fetch failed"
+      },
+      {
+        "name": "https-openclaw-ai",
+        "target": "https://openclaw.ai",
+        "ok": false,
+        "latencyMs": 2,
+        "error": "fetch failed"
+      },
+      {
+        "name": "https-www-google-com",
+        "target": "https://www.google.com",
+        "ok": false,
+        "latencyMs": 2,
+        "error": "fetch failed"
+      }
+    ]
+  },
+  "fit": {
+    "chat": "limited",
+    "automation": "good",
+    "multiAgent": "good",
+    "media": "good"
+  },
+  "warnings": [
+    "Network checks failed: dns-openclaw-ai, dns-github-com, https-github-com, https-openclaw-ai, https-www-google-com",
+    "Low free memory right now: about 0.2 GB"
+  ],
+  "recommendations": [
+    "Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.",
+    "Close high-memory apps and rerun the check to avoid scoring against a transient spike."
+  ]
+}

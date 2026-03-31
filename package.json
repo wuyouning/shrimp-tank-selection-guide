@@ -1,0 +1,37 @@
+{
+  "name": "openclaw-preflight",
+  "version": "1.0.0",
+  "description": "Help users judge whether their shrimp tank setup is suitable for use.",
+  "main": "dist/cli.js",
+  "bin": {
+    "openclaw-preflight": "dist/cli.js"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "keywords": [
+    "shrimp-tank",
+    "aquarium",
+    "guide",
+    "selection",
+    "evaluation"
+  ],
+  "author": "Wu Ruidong",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "commander": "^14.0.3",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
