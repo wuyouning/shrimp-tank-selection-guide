@@ -4,16 +4,25 @@
   "description": "Help users judge whether their shrimp tank setup is suitable for use.",
   "main": "dist/cli.js",
   "bin": {
-    "openclaw-preflight": "dist/cli.js"
+    "openclaw-preflight": "dist/cli.js",
+    "shrimp-tank": "dist/cli.js"
   },
   "directories": {
     "example": "examples"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "README.zh-CN.md"
+  ],
   "scripts": {
     "dev": "tsx src/cli.ts",
     "build": "tsc",
     "start": "node dist/cli.js",
-    "test": "node --test dist/**/*.test.js"
+    "test": "node --test dist/**/*.test.js",
+    "pack:local": "npm run build && npm pack",
+    "install:global-local": "npm run build && npm install -g .",
+    "uninstall:global-local": "npm uninstall -g openclaw-preflight"
   },
   "keywords": [
     "shrimp-tank",

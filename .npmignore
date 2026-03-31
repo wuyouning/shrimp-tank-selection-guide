@@ -1,0 +1,7 @@
+src/
+examples/
+*.tgz
+*.tsbuildinfo
+dist/**/*.map
+dist/**/*.d.ts
+dist/__tests__/

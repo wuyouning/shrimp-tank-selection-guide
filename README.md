@@ -40,6 +40,27 @@ This project is meant to be a practical preflight checker: something you can run
 npm install
 ```
 
+## Easier local CLI use
+
+If you want a ready-to-run CLI on your machine without manually typing `node dist/cli.js`, install it globally from the project folder:
+
+```bash
+npm run install:global-local
+```
+
+Then you can run either command directly:
+
+```bash
+openclaw-preflight --lang en
+shrimp-tank --lang zh-CN
+```
+
+To remove the local global install later:
+
+```bash
+npm run uninstall:global-local
+```
+
 ## Platform notes
 
 - `macOS`: detects Homebrew, reports its version when present, and suggests `brew install ...` commands for missing dependencies when possible.

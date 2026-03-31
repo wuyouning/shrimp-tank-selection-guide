@@ -41,6 +41,27 @@
 npm install
 ```
 
+## 更省事的本地 CLI 用法
+
+如果你想把它装成机器上可直接运行的 CLI，而不是每次都手动敲 `node dist/cli.js`，可以在项目目录里执行：
+
+```bash
+npm run install:global-local
+```
+
+安装完成后，你可以直接运行这两个命令中的任意一个：
+
+```bash
+openclaw-preflight --lang en
+shrimp-tank --lang zh-CN
+```
+
+如果之后想卸载这个本地全局 CLI：
+
+```bash
+npm run uninstall:global-local
+```
+
 ## 平台说明
 
 - `macOS`：会检测 Homebrew；如果存在，会显示版本；若缺依赖，会尽量给出 `brew install ...` 的明确提示。
