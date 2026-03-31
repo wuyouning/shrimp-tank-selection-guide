@@ -18,9 +18,10 @@ cd "$ROOT_DIR"
 npm run release:check
 cp "$ROOT_DIR/$PKG_NAME" "$PAYLOAD_DIR/"
 cp "$MAC_DIR/Install Shrimp Tank.command" "$STAGE_DIR/"
+cp "$MAC_DIR/Installer Shrimp Tank.command" "$STAGE_DIR/"
 cp "$MAC_DIR/Run Shrimp Tank.command" "$STAGE_DIR/"
 cp "$MAC_DIR/README-macOS.txt" "$STAGE_DIR/"
-chmod +x "$STAGE_DIR/Install Shrimp Tank.command" "$STAGE_DIR/Run Shrimp Tank.command"
+chmod +x "$STAGE_DIR/Install Shrimp Tank.command" "$STAGE_DIR/Installer Shrimp Tank.command" "$STAGE_DIR/Run Shrimp Tank.command"
 
 hdiutil create \
   -volname "$VOL_NAME" \

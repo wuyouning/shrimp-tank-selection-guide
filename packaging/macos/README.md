@@ -21,6 +21,7 @@ That means:
 
 ## Included in the DMG
 
+- `Installer Shrimp Tank.command`
 - `Install Shrimp Tank.command`
 - `Run Shrimp Tank.command`
 - `payload/openclaw-preflight-<version>.tgz`
@@ -50,8 +51,27 @@ It is **not yet**:
 - a notarized Apple-distributed installer
 - a native GUI app wrapper
 
+## Signing and notarization
+
+A follow-up script is included:
+
+```bash
+npm run sign:dmg
+```
+
+Environment variables:
+
+- `APPLE_CODESIGN_IDENTITY` — Developer ID Application identity name from Keychain
+- `APPLE_NOTARY_PROFILE` — optional `notarytool` keychain profile name
+
+Behavior:
+
+- if no signing identity is configured, the script exits cleanly and explains what is missing
+- if a signing identity is configured, it signs the DMG
+- if a notary profile is also configured, it submits the DMG and staples the result
+
 ## Good next steps
 
-- add code signing for the DMG and scripts
-- create a notarized `.pkg` installer path
+- move from installer-style DMG to signed/notarized `.pkg` when needed
+- add branded icons/background layout for the DMG window
 - add a lightweight native macOS launcher app if a GUI entrypoint becomes desirable

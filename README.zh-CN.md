@@ -158,10 +158,17 @@ npm run build:dmg
 
 生成的 DMG 里会包含：
 
+- `Installer Shrimp Tank.command`
 - `Install Shrimp Tank.command`
 - `Run Shrimp Tank.command`
 - `payload/` 里的 CLI 安装包
 - 一份简短的 macOS 使用说明
+
+如果后面要继续走更正式的签名 / 公证流程，还可以执行：
+
+```bash
+npm run sign:dmg
+```
 
 为什么一份 DMG 可以同时支持 Intel 和 M 系列：
 

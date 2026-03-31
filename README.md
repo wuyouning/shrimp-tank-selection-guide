@@ -157,10 +157,17 @@ npm run build:dmg
 
 The generated DMG contains:
 
+- `Installer Shrimp Tank.command`
 - `Install Shrimp Tank.command`
 - `Run Shrimp Tank.command`
 - the packaged CLI tarball in `payload/`
 - a short macOS usage note
+
+Optional follow-up for code signing / notarization:
+
+```bash
+npm run sign:dmg
+```
 
 Why one DMG works for both Intel and Apple Silicon:
 
