@@ -1,5 +1,7 @@
 # 虾缸挑选指南
 
+中文版 | [English](./README.md)
+
 一个本地 TypeScript / Node CLI，用来判断一台宿主机是否适合运行 OpenClaw。
 
 如果把 OpenClaw 理解成“虾”，那这个工具做的事，就是帮你判断这个“缸”适不适合养它。

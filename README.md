@@ -1,5 +1,7 @@
 # Shrimp Tank Selection Guide
 
+[中文版](./README.zh-CN.md) | English
+
 A local TypeScript/Node CLI for checking whether a host machine is a good fit for running OpenClaw.
 
 If OpenClaw is the shrimp, this tool helps you judge whether the tank is ready.
