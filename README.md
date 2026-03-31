@@ -61,6 +61,41 @@ To remove the local global install later:
 npm run uninstall:global-local
 ```
 
+## Release-ready packaging
+
+This project is now set up like a publishable npm CLI:
+
+```bash
+npm run release:check
+```
+
+That command will:
+
+1. clean old build artifacts
+2. run tests
+3. build a lean production `dist/`
+4. generate a release tarball with `npm pack`
+
+The release tarball keeps only the runtime assets needed by end users:
+- compiled CLI code in `dist/`
+- README files
+- LICENSE
+
+## Publish path
+
+When you're ready to publish for real, the standard flow is:
+
+```bash
+npm login
+npm publish --access public
+```
+
+After publishing, users can install it with:
+
+```bash
+npm install -g openclaw-preflight
+```
+
 ## Platform notes
 
 - `macOS`: detects Homebrew, reports its version when present, and suggests `brew install ...` commands for missing dependencies when possible.

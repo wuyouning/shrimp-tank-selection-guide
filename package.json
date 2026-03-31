@@ -13,27 +13,38 @@
   "files": [
     "dist",
     "README.md",
-    "README.zh-CN.md"
+    "README.zh-CN.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "tsx src/cli.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
+    "build:dev": "tsc",
+    "clean": "rm -rf dist openclaw-preflight-*.tgz",
+    "prepack": "npm run clean && npm run build",
     "start": "node dist/cli.js",
-    "test": "node --test dist/**/*.test.js",
-    "pack:local": "npm run build && npm pack",
+    "test": "npm run build:dev && node --test dist/**/*.test.js",
+    "pack:local": "npm pack",
     "install:global-local": "npm run build && npm install -g .",
-    "uninstall:global-local": "npm uninstall -g openclaw-preflight"
+    "uninstall:global-local": "npm uninstall -g openclaw-preflight",
+    "release:check": "npm run clean && npm test && npm pack"
   },
   "keywords": [
     "shrimp-tank",
     "aquarium",
     "guide",
     "selection",
-    "evaluation"
+    "evaluation",
+    "openclaw",
+    "preflight",
+    "cli"
   ],
   "author": "Wu Ruidong",
   "license": "MIT",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22.14"
+  },
   "dependencies": {
     "commander": "^14.0.3",
     "picocolors": "^1.1.1"

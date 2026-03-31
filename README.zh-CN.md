@@ -62,6 +62,41 @@ shrimp-tank --lang zh-CN
 npm run uninstall:global-local
 ```
 
+## 面向发布的打包方式
+
+现在这个项目已经整理成更像正式 npm CLI 的发布结构了：
+
+```bash
+npm run release:check
+```
+
+这条命令会自动：
+
+1. 清理旧构建产物
+2. 跑测试
+3. 构建精简版生产 `dist/`
+4. 用 `npm pack` 生成发布压缩包
+
+最终产物会尽量只保留终端用户真正需要的内容：
+- `dist/` 里的 CLI 运行代码
+- README 文档
+- LICENSE
+
+## 正式发布路径
+
+等你准备正式发布时，标准流程就是：
+
+```bash
+npm login
+npm publish --access public
+```
+
+发布完成后，用户就可以直接这样安装：
+
+```bash
+npm install -g openclaw-preflight
+```
+
 ## 平台说明
 
 - `macOS`：会检测 Homebrew；如果存在，会显示版本；若缺依赖，会尽量给出 `brew install ...` 的明确提示。
