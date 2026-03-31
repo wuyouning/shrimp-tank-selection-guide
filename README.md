@@ -145,11 +145,11 @@ npm login
 npm publish --access public
 ```
 
-## macOS DMG build
+## macOS installers
 
-This project also includes a macOS installer-style DMG flow for both Intel and Apple Silicon Macs.
+This project now includes two macOS distribution paths for both Intel and Apple Silicon Macs.
 
-Build it with:
+### DMG installer-style flow
 
 ```bash
 npm run build:dmg
@@ -169,11 +169,23 @@ Optional follow-up for code signing / notarization:
 npm run sign:dmg
 ```
 
-Why one DMG works for both Intel and Apple Silicon:
+### PKG installer flow
+
+```bash
+npm run build:pkg
+```
+
+Output:
+
+```bash
+build/macos-pkg/shrimp-tank-installer-<version>.pkg
+```
+
+Why one installer path works for both Intel and Apple Silicon:
 
 - the shipped CLI is JavaScript, not a single-architecture native binary
 - installation happens through the local Node.js runtime on the target Mac
-- as long as that Mac has a supported Node.js installed, the same DMG can be used on Intel and M-series machines
+- as long as that Mac has a supported Node.js installed, the same DMG / PKG flow can be used on Intel and M-series machines
 
 ## Project strength today
 

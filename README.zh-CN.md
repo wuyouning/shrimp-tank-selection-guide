@@ -146,9 +146,11 @@ npm login
 npm publish --access public
 ```
 
-## macOS DMG 打包
+## macOS 安装器
 
-这个项目现在也带了一套 macOS 安装器型 DMG 构建流程，适用于 Intel 和 Apple Silicon 两类 Mac。
+这个项目现在已经带了两条 macOS 分发路线，适用于 Intel 和 Apple Silicon 两类 Mac。
+
+### DMG 安装器型流程
 
 构建命令：
 
@@ -170,11 +172,25 @@ npm run build:dmg
 npm run sign:dmg
 ```
 
-为什么一份 DMG 可以同时支持 Intel 和 M 系列：
+### PKG 安装器流程
+
+构建命令：
+
+```bash
+npm run build:pkg
+```
+
+输出路径：
+
+```bash
+build/macos-pkg/shrimp-tank-installer-<version>.pkg
+```
+
+为什么一套安装器路线可以同时支持 Intel 和 M 系列：
 
 - CLI 本体是 JavaScript，不是单一架构原生二进制
 - 安装动作依赖目标机器本地的 Node.js 运行时
-- 只要目标 Mac 上安装了支持版本的 Node.js，同一份 DMG 就能在 Intel 与 Apple Silicon 上工作
+- 只要目标 Mac 上安装了支持版本的 Node.js，同一套 DMG / PKG 路线就能在 Intel 与 Apple Silicon 上工作
 
 ## 当前这个项目最强的地方
 

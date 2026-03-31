@@ -28,6 +28,7 @@ It turns host readiness into a practical terminal workflow:
 - bilingual CLI output
 - release-ready npm packaging flow
 - first macOS installer-style DMG flow for both Intel and Apple Silicon Macs
+- first macOS `.pkg` installer build flow for both Intel and Apple Silicon Macs
 
 ### Install
 
