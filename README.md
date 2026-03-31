@@ -151,6 +151,24 @@ The tool currently focuses on:
 - basic network validation
 - OpenClaw workload fit recommendation
 
+## Scoring methodology
+
+This project treats **100 points as the standard host baseline** for OpenClaw.
+
+That baseline is intentionally split into three parts:
+
+- **Software score** — runtime, install-critical dependencies, and platform readiness
+- **Hardware score** — RAM capacity, CPU concurrency, and disk headroom
+- **Real-time fluctuation score** — current network condition, currently free memory, and current system load
+
+On top of that, strong hosts can earn **bonus points** for clearly exceeding the standard baseline, so the final score may go above 100.
+
+This makes the report easier to interpret:
+
+- a high hardware score but weak real-time score usually means the machine is fundamentally good, but currently busy or network-constrained
+- a weak software score means the machine may be physically capable, but still under-prepared for OpenClaw
+- bonus points help distinguish merely acceptable hosts from excellent ones
+
 ## Good next steps
 
 - richer Linux distro and package-manager detection

@@ -141,94 +141,40 @@ const COPY = {
 };
 const ITEM_LOCALIZATION = {
     'runtime-baseline': {
-        en: {
-            label: 'Runtime baseline',
-            note: 'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.',
-        },
-        'zh-CN': {
-            label: '运行时基线',
-            note: 'Node 24 是 OpenClaw 推荐运行时；Node 22.14+ 是当前支持的最低基线。',
-        },
+        en: { label: 'Runtime baseline', note: 'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.' },
+        'zh-CN': { label: '运行时基线', note: 'Node 24 是 OpenClaw 推荐运行时；Node 22.14+ 是当前支持的最低基线。' },
     },
     'tooling-baseline': {
-        en: {
-            label: 'Tooling baseline',
-            note: 'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.',
-        },
-        'zh-CN': {
-            label: '工具链基线',
-            note: '衡量安装关键依赖与日常辅助工具，例如 git、python3、ffmpeg、uv、docker。',
-        },
+        en: { label: 'Tooling baseline', note: 'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.' },
+        'zh-CN': { label: '工具链基线', note: '衡量安装关键依赖与日常辅助工具，例如 git、python3、ffmpeg、uv、docker。' },
     },
     'platform-readiness': {
-        en: {
-            label: 'Platform readiness',
-            note: 'Rewards hosts where package management and platform-specific setup paths are clearly available.',
-        },
-        'zh-CN': {
-            label: '平台准备度',
-            note: '当平台的包管理器与系统级安装路径清晰可用时，会在这里加分。',
-        },
+        en: { label: 'Platform readiness', note: 'Rewards hosts where package management and platform-specific setup paths are clearly available.' },
+        'zh-CN': { label: '平台准备度', note: '当平台的包管理器与系统级安装路径清晰可用时，会在这里加分。' },
     },
     'memory-capacity': {
-        en: {
-            label: 'Memory capacity',
-            note: '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.',
-        },
-        'zh-CN': {
-            label: '内存容量',
-            note: '4 GB 是可用下限，8 GB 较舒适，16 GB 是更重 OpenClaw 场景的标准目标。',
-        },
+        en: { label: 'Memory capacity', note: '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.' },
+        'zh-CN': { label: '内存容量', note: '4 GB 是可用下限，8 GB 较舒适，16 GB 是更重 OpenClaw 场景的标准目标。' },
     },
     'cpu-concurrency': {
-        en: {
-            label: 'CPU concurrency',
-            note: 'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.',
-        },
-        'zh-CN': {
-            label: 'CPU 并发能力',
-            note: '更高的逻辑核心数有助于并发工具调用、自动化任务和多 Agent 吞吐。',
-        },
+        en: { label: 'CPU concurrency', note: 'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.' },
+        'zh-CN': { label: 'CPU 并发能力', note: '更高的逻辑核心数有助于并发工具调用、自动化任务和多 Agent 吞吐。' },
     },
     'disk-capacity': {
-        en: {
-            label: 'Disk headroom',
-            note: 'Free disk matters for packages, caches, media outputs, logs, and sandbox images.',
-        },
-        'zh-CN': {
-            label: '磁盘余量',
-            note: '空闲磁盘会直接影响包安装、缓存、媒体产物、日志和沙箱镜像。',
-        },
+        en: { label: 'Disk headroom', note: 'Free disk matters for packages, caches, media outputs, logs, and sandbox images.' },
+        'zh-CN': { label: '磁盘余量', note: '空闲磁盘会直接影响包安装、缓存、媒体产物、日志和沙箱镜像。' },
     },
     'network-readiness': {
-        en: {
-            label: 'Network readiness',
-            note: 'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.',
-        },
-        'zh-CN': {
-            label: '网络准备度',
-            note: '反映当前 DNS 与外网 HTTPS 状态，对安装、更新、模型 API 与文档访问都很重要。',
-        },
+        en: { label: 'Network readiness', note: 'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.' },
+        'zh-CN': { label: '网络准备度', note: '反映当前 DNS 与外网 HTTPS 状态，对安装、更新、模型 API 与文档访问都很重要。' },
     },
     'memory-availability': {
-        en: {
-            label: 'Current free memory',
-            note: 'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.',
-        },
-        'zh-CN': {
-            label: '当前空闲内存',
-            note: '这是实时快照，表示此刻还剩多少可用内存，与机器总内存容量分开计算。',
-        },
+        en: { label: 'Current free memory', note: 'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.' },
+        'zh-CN': { label: '当前空闲内存', note: '这是实时快照，表示此刻还剩多少可用内存，与机器总内存容量分开计算。' },
     },
     'system-load': {
-        en: {
-            label: 'Current system load',
-            note: 'Captures whether the machine is already under pressure at the moment this check runs.',
-        },
-        'zh-CN': {
-            label: '当前系统负载',
-            note: '用于反映本次检查运行时，这台机器是否已经处于明显压力状态。',
-        },
+        en: { label: 'Current system load', note: 'Captures whether the machine is already under pressure at the moment this check runs.' },
+        'zh-CN': { label: '当前系统负载', note: '用于反映本次检查运行时，这台机器是否已经处于明显压力状态。' },
     },
     'bonus-large-memory-pool': {
         en: { label: 'Bonus: large memory pool', note: '32 GB+ gives extra room for media-heavy and parallel workloads.' },
@@ -304,6 +250,10 @@ const RUNTIME_TEXT = {
         'No supported Linux package manager was detected.': 'No supported Linux package manager was detected.',
         'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.': 'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.',
         'This Windows session is not elevated.': 'This Windows session is not elevated.',
+        'Current session is not running on Windows.': 'Current session is not running on Windows.',
+        'Windows-specific elevation checks are skipped when the CLI is not running on Windows.': 'Windows-specific elevation checks are skipped when the CLI is not running on Windows.',
+        'For Windows installs, prefer an elevated PowerShell session for dependency setup.': 'For Windows installs, prefer an elevated PowerShell session for dependency setup.',
+        'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.': 'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.',
     },
     'zh-CN': {
         'Missing required dependencies': '缺少必需依赖',
@@ -333,6 +283,10 @@ const RUNTIME_TEXT = {
         'No supported Linux package manager was detected.': '未检测到受支持的 Linux 包管理器。',
         'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.': '建议补充发行版级包管理器识别，或确认运行环境 PATH 中可见 apt、dnf、yum、pacman。',
         'This Windows session is not elevated.': '当前 Windows 会话未提权。',
+        'Current session is not running on Windows.': '当前会话并未运行在 Windows 上。',
+        'Windows-specific elevation checks are skipped when the CLI is not running on Windows.': '当前 CLI 并未运行在 Windows 上，因此跳过 Windows 提权检查。',
+        'For Windows installs, prefer an elevated PowerShell session for dependency setup.': '在 Windows 上安装时，建议优先使用已提权的 PowerShell 会话来处理依赖。',
+        'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.': '建议使用 winget 或官方安装器来安装 Node.js LTS、Git、Python 3 和 FFmpeg。',
     },
 };
 function fitColor(level, lang) {
