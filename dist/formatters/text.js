@@ -21,7 +21,7 @@ const COPY = {
     en: {
         title: 'OpenClaw Preflight Checker',
         status: 'Status',
-        bonus: 'bonus',
+        bonus: 'Bonus points',
         hostSummary: 'Host Summary',
         hostname: 'Hostname',
         user: 'User',
@@ -65,7 +65,7 @@ const COPY = {
         elevated: 'elevated',
         notElevated: 'not elevated',
         notEvaluated: 'not evaluated',
-        note: 'Note',
+        note: 'Summary',
         recommendation: 'Recommendation',
         warnings: 'Warnings',
         recommendations: 'Recommendations',
@@ -125,7 +125,7 @@ const COPY = {
         elevated: '已提权',
         notElevated: '未提权',
         notEvaluated: '未评估',
-        note: '说明',
+        note: '总评',
         recommendation: '建议',
         warnings: '警告',
         recommendations: '建议项',
@@ -221,25 +221,16 @@ const ITEM_LOCALIZATION = {
         'zh-CN': { label: '奖励：多 Agent 余量', note: '已明显高于多 Agent 档位的最低并发目标。' },
     },
 };
-const RUNTIME_TEXT = {
+const EXACT_TEXT = {
     en: {
-        'Missing required dependencies': 'Missing required dependencies',
         'Install the missing required dependencies before deploying OpenClaw.': 'Install the missing required dependencies before deploying OpenClaw.',
-        'Missing recommended dependencies': 'Missing recommended dependencies',
         'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.': 'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.',
-        'Network checks failed': 'Network checks failed',
         'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.': 'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.',
-        'Low memory': 'Low memory',
         'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.': 'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.',
-        'Limited memory headroom': 'Limited memory headroom',
         'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.': 'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.',
-        'Low free memory right now': 'Low free memory right now',
         'Close high-memory apps and rerun the check to avoid scoring against a transient spike.': 'Close high-memory apps and rerun the check to avoid scoring against a transient spike.',
-        'Low free disk space': 'Low free disk space',
         'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.': 'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.',
-        'Low CPU core count': 'Low CPU core count',
         'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.': 'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.',
-        'High current system load': 'High current system load',
         'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.': 'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.',
         'The media profile has limited memory headroom on this machine.': 'The media profile has limited memory headroom on this machine.',
         'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.': 'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.',
@@ -256,23 +247,14 @@ const RUNTIME_TEXT = {
         'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.': 'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.',
     },
     'zh-CN': {
-        'Missing required dependencies': '缺少必需依赖',
         'Install the missing required dependencies before deploying OpenClaw.': '请先补齐必需依赖，再部署 OpenClaw。',
-        'Missing recommended dependencies': '缺少推荐依赖',
         'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.': '建议补齐 git、python3、ffmpeg 等推荐工具，以获得更顺滑的使用体验。',
-        'Network checks failed': '网络检查失败',
         'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.': '请检查 DNS、代理设置、外网 HTTPS 出站访问，以及公司网络控制策略。',
-        'Low memory': '总内存偏低',
         'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.': '建议至少使用 4 GB 内存；若想稳定日常使用，最好达到 8 GB 或以上。',
-        'Limited memory headroom': '内存余量有限',
         'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.': '如果希望后台运行更稳定或支持更多并发任务，建议升级到 8 GB 或以上。',
-        'Low free memory right now': '当前空闲内存偏低',
         'Close high-memory apps and rerun the check to avoid scoring against a transient spike.': '建议先关闭高内存占用应用后再重跑，避免瞬时占用拉低评分。',
-        'Low free disk space': '空闲磁盘空间偏低',
         'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.': '建议至少保留 5–10 GB 空闲磁盘空间，用于安装包、缓存和临时文件。',
-        'Low CPU core count': 'CPU 核心数偏低',
         'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.': '如果打算跑并发任务或媒体型工作负载，建议使用更强的多核 CPU。',
-        'High current system load': '当前系统负载偏高',
         'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.': '建议在机器空闲时重新执行预检，以区分长期能力上限和瞬时压力。',
         'The media profile has limited memory headroom on this machine.': '这台机器在媒体档位下的内存余量有限。',
         'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.': '媒体型工作流更适合 16 GB 及以上内存，以及更强的算力 / GPU 支持。',
@@ -287,6 +269,30 @@ const RUNTIME_TEXT = {
         'Windows-specific elevation checks are skipped when the CLI is not running on Windows.': '当前 CLI 并未运行在 Windows 上，因此跳过 Windows 提权检查。',
         'For Windows installs, prefer an elevated PowerShell session for dependency setup.': '在 Windows 上安装时，建议优先使用已提权的 PowerShell 会话来处理依赖。',
         'Use winget or official installers for Node.js LTS, Git, Python 3, and FFmpeg.': '建议使用 winget 或官方安装器来安装 Node.js LTS、Git、Python 3 和 FFmpeg。',
+    },
+};
+const PREFIX_TEXT = {
+    en: {
+        'Missing required dependencies:': 'Missing required dependencies:',
+        'Missing recommended dependencies:': 'Missing recommended dependencies:',
+        'Network checks failed:': 'Network checks failed:',
+        'Low memory:': 'Low memory:',
+        'Limited memory headroom:': 'Limited memory headroom:',
+        'Low free memory right now:': 'Low free memory right now:',
+        'Low free disk space:': 'Low free disk space:',
+        'Low CPU core count:': 'Low CPU core count:',
+        'High current system load:': 'High current system load:',
+    },
+    'zh-CN': {
+        'Missing required dependencies:': '缺少必需依赖：',
+        'Missing recommended dependencies:': '缺少推荐依赖：',
+        'Network checks failed:': '网络检查失败：',
+        'Low memory:': '总内存偏低：',
+        'Limited memory headroom:': '内存余量有限：',
+        'Low free memory right now:': '当前空闲内存偏低：',
+        'Low free disk space:': '空闲磁盘空间偏低：',
+        'Low CPU core count:': 'CPU 核心数偏低：',
+        'High current system load:': '当前系统负载偏高：',
     },
 };
 function fitColor(level, lang) {
@@ -315,12 +321,13 @@ function localizeItem(item, lang) {
     };
 }
 function localizeLine(text, lang) {
-    const map = RUNTIME_TEXT[lang];
-    if (map[text])
-        return map[text];
-    for (const [source, target] of Object.entries(map)) {
-        if (text.startsWith(source + ':')) {
-            return text.replace(source, target);
+    const exact = EXACT_TEXT[lang];
+    if (exact[text])
+        return exact[text];
+    const prefixes = PREFIX_TEXT[lang];
+    for (const [source, target] of Object.entries(prefixes)) {
+        if (text.startsWith(source)) {
+            return target + text.slice(source.length);
         }
     }
     return text;
@@ -349,7 +356,7 @@ function formatText(report, verbose = false, lang = 'en') {
     lines.push(`- ${t.hardwareScore}: ${report.summary.hardwareScore}`);
     lines.push(`- ${t.realtimeScore}: ${report.summary.realtimeScore}`);
     if (report.summary.bonusPoints > 0) {
-        lines.push(`- ${t.bonus}: ${report.summary.bonusPoints}`);
+        lines.push(`- ${t.bonus}: +${report.summary.bonusPoints}`);
     }
     lines.push(`- ${t.note}: ${t.scoreOverviewNote}`);
     lines.push('');

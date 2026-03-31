@@ -173,19 +173,19 @@ function assessFit(host, hardware, dependencies, networkChecks, profile) {
         recommendations.push('Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.');
     }
     if (totalMemGb < 4) {
-        warnings.push(`Low memory: about ${totalMemGb.toFixed(1)} GB total`);
+        warnings.push(`Low memory: ${totalMemGb.toFixed(1)} GB total`);
         recommendations.push('Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.');
     }
     else if (totalMemGb < 8) {
-        warnings.push(`Limited memory headroom: about ${totalMemGb.toFixed(1)} GB total`);
+        warnings.push(`Limited memory headroom: ${totalMemGb.toFixed(1)} GB total`);
         recommendations.push('Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.');
     }
     if (freeMemGb > 0 && freeMemGb < 1) {
-        warnings.push(`Low free memory right now: about ${freeMemGb.toFixed(1)} GB`);
+        warnings.push(`Low free memory right now: ${freeMemGb.toFixed(1)} GB free`);
         recommendations.push('Close high-memory apps and rerun the check to avoid scoring against a transient spike.');
     }
     if (freeDiskGb > 0 && freeDiskGb < 5) {
-        warnings.push(`Low free disk space: about ${freeDiskGb.toFixed(1)} GB`);
+        warnings.push(`Low free disk space: ${freeDiskGb.toFixed(1)} GB free`);
         recommendations.push('Keep at least 5-10 GB of free disk space for packages, caches, and temp files.');
     }
     if (cores < 4) {
@@ -193,7 +193,7 @@ function assessFit(host, hardware, dependencies, networkChecks, profile) {
         recommendations.push('Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.');
     }
     if (load1 > Math.max(cores, 1) * 1.2) {
-        warnings.push(`High current system load: 1m load is ${load1.toFixed(2)} on ${cores} cores`);
+        warnings.push(`High current system load: 1m load ${load1.toFixed(2)} across ${cores} cores`);
         recommendations.push('Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.');
     }
     if (profile === 'media' && totalMemGb < 16) {

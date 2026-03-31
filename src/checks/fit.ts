@@ -81,15 +81,7 @@ export function assessFit(
 
   const runtimeScore = requiredMissing.length === 0 ? 20 : 0;
   softwareScore += runtimeScore;
-  addScore(
-    scoreBreakdown,
-    'software',
-    'runtime-baseline',
-    'Runtime baseline',
-    runtimeScore,
-    20,
-    'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.',
-  );
+  addScore(scoreBreakdown, 'software', 'runtime-baseline', 'Runtime baseline', runtimeScore, 20, 'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.');
 
   let dependencyScore = 20;
   if (recommendedMissing.length) dependencyScore -= Math.min(12, recommendedMissing.length * 4);
@@ -98,15 +90,7 @@ export function assessFit(
   if (requiredMissing.length) dependencyScore = Math.max(0, dependencyScore - 10);
   dependencyScore = Math.max(0, dependencyScore);
   softwareScore += dependencyScore;
-  addScore(
-    scoreBreakdown,
-    'software',
-    'tooling-baseline',
-    'Tooling baseline',
-    dependencyScore,
-    20,
-    'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.',
-  );
+  addScore(scoreBreakdown, 'software', 'tooling-baseline', 'Tooling baseline', dependencyScore, 20, 'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.');
 
   let platformScore = 2;
   if (host.osFamily === 'macos' || host.osFamily === 'windows' || host.osFamily === 'linux') platformScore = 4;
@@ -114,15 +98,7 @@ export function assessFit(
   if (host.osFamily === 'linux' && host.packageManagers.some((x) => ['apt', 'dnf', 'yum', 'pacman'].includes(x.name) && x.detected)) platformScore = 5;
   if (host.osFamily === 'windows' && host.windows.admin.canEvaluate) platformScore = 5;
   softwareScore += platformScore;
-  addScore(
-    scoreBreakdown,
-    'software',
-    'platform-readiness',
-    'Platform readiness',
-    platformScore,
-    5,
-    'Rewards hosts where package management and platform-specific setup paths are clearly available.',
-  );
+  addScore(scoreBreakdown, 'software', 'platform-readiness', 'Platform readiness', platformScore, 5, 'Rewards hosts where package management and platform-specific setup paths are clearly available.');
 
   let memoryCapacityScore = 0;
   if (totalMemGb >= 16) memoryCapacityScore = 20;
@@ -130,30 +106,14 @@ export function assessFit(
   else if (totalMemGb >= 4) memoryCapacityScore = 10;
   else memoryCapacityScore = 2;
   hardwareScore += memoryCapacityScore;
-  addScore(
-    scoreBreakdown,
-    'hardware',
-    'memory-capacity',
-    'Memory capacity',
-    memoryCapacityScore,
-    20,
-    '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.',
-  );
+  addScore(scoreBreakdown, 'hardware', 'memory-capacity', 'Memory capacity', memoryCapacityScore, 20, '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.');
 
   let cpuScore = 0;
   if (cores >= 8) cpuScore = 15;
   else if (cores >= 4) cpuScore = 10;
   else cpuScore = 4;
   hardwareScore += cpuScore;
-  addScore(
-    scoreBreakdown,
-    'hardware',
-    'cpu-concurrency',
-    'CPU concurrency',
-    cpuScore,
-    15,
-    'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.',
-  );
+  addScore(scoreBreakdown, 'hardware', 'cpu-concurrency', 'CPU concurrency', cpuScore, 15, 'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.');
 
   let diskCapacityScore = 0;
   if (freeDiskGb >= 20) diskCapacityScore = 10;
@@ -161,58 +121,26 @@ export function assessFit(
   else if (freeDiskGb >= 5) diskCapacityScore = 5;
   else diskCapacityScore = 1;
   hardwareScore += diskCapacityScore;
-  addScore(
-    scoreBreakdown,
-    'hardware',
-    'disk-capacity',
-    'Disk headroom',
-    diskCapacityScore,
-    10,
-    'Free disk matters for packages, caches, media outputs, logs, and sandbox images.',
-  );
+  addScore(scoreBreakdown, 'hardware', 'disk-capacity', 'Disk headroom', diskCapacityScore, 10, 'Free disk matters for packages, caches, media outputs, logs, and sandbox images.');
 
   let networkScore = 15;
   networkScore -= failedNetwork.length * 4;
   networkScore = Math.max(0, networkScore);
   realtimeScore += networkScore;
-  addScore(
-    scoreBreakdown,
-    'realtime',
-    'network-readiness',
-    'Network readiness',
-    networkScore,
-    15,
-    'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.',
-  );
+  addScore(scoreBreakdown, 'realtime', 'network-readiness', 'Network readiness', networkScore, 15, 'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.');
 
   let memoryAvailabilityScore = 10;
   if (freeMemGb < 1) memoryAvailabilityScore = 5;
   if (freeMemGb < 0.5) memoryAvailabilityScore = 2;
   if (freeMemGb <= 0) memoryAvailabilityScore = 0;
   realtimeScore += memoryAvailabilityScore;
-  addScore(
-    scoreBreakdown,
-    'realtime',
-    'memory-availability',
-    'Current free memory',
-    memoryAvailabilityScore,
-    10,
-    'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.',
-  );
+  addScore(scoreBreakdown, 'realtime', 'memory-availability', 'Current free memory', memoryAvailabilityScore, 10, 'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.');
 
   let loadScore = 5;
   if (load1 > Math.max(cores, 1) * 1.2) loadScore = 1;
   else if (load1 > Math.max(cores, 1) * 0.8) loadScore = 3;
   realtimeScore += loadScore;
-  addScore(
-    scoreBreakdown,
-    'realtime',
-    'system-load',
-    'Current system load',
-    loadScore,
-    5,
-    'Captures whether the machine is already under pressure at the moment this check runs.',
-  );
+  addScore(scoreBreakdown, 'realtime', 'system-load', 'Current system load', loadScore, 5, 'Captures whether the machine is already under pressure at the moment this check runs.');
 
   if (totalMemGb >= 32) {
     bonusPoints += 8;
@@ -284,20 +212,20 @@ export function assessFit(
   }
 
   if (totalMemGb < 4) {
-    warnings.push(`Low memory: about ${totalMemGb.toFixed(1)} GB total`);
+    warnings.push(`Low memory: ${totalMemGb.toFixed(1)} GB total`);
     recommendations.push('Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.');
   } else if (totalMemGb < 8) {
-    warnings.push(`Limited memory headroom: about ${totalMemGb.toFixed(1)} GB total`);
+    warnings.push(`Limited memory headroom: ${totalMemGb.toFixed(1)} GB total`);
     recommendations.push('Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.');
   }
 
   if (freeMemGb > 0 && freeMemGb < 1) {
-    warnings.push(`Low free memory right now: about ${freeMemGb.toFixed(1)} GB`);
+    warnings.push(`Low free memory right now: ${freeMemGb.toFixed(1)} GB free`);
     recommendations.push('Close high-memory apps and rerun the check to avoid scoring against a transient spike.');
   }
 
   if (freeDiskGb > 0 && freeDiskGb < 5) {
-    warnings.push(`Low free disk space: about ${freeDiskGb.toFixed(1)} GB`);
+    warnings.push(`Low free disk space: ${freeDiskGb.toFixed(1)} GB free`);
     recommendations.push('Keep at least 5-10 GB of free disk space for packages, caches, and temp files.');
   }
 
@@ -307,7 +235,7 @@ export function assessFit(
   }
 
   if (load1 > Math.max(cores, 1) * 1.2) {
-    warnings.push(`High current system load: 1m load is ${load1.toFixed(2)} on ${cores} cores`);
+    warnings.push(`High current system load: 1m load ${load1.toFixed(2)} across ${cores} cores`);
     recommendations.push('Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.');
   }
 
