@@ -1,5 +1,6 @@
 export type Profile = 'light' | 'standard' | 'media' | 'multi-agent';
 export type OsFamily = 'macos' | 'linux' | 'windows' | 'unknown';
+export type Language = 'en' | 'zh-CN';
 
 export type SummaryStatus = 'PASS' | 'PASS_WITH_WARNINGS' | 'LIMITED' | 'FAIL';
 export type FitLevel = 'good' | 'limited' | 'poor';
@@ -109,6 +110,7 @@ export interface PreflightReport {
   version: string;
   timestamp: string;
   profile: Profile;
+  language: Language;
   summary: ReportSummary;
   host: HostInfo;
   hardware: HardwareInfo;
@@ -128,4 +130,5 @@ export interface RunOptions {
   verbose?: boolean;
   timeout: number;
   profile: Profile;
+  lang: Language;
 }

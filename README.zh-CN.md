@@ -87,7 +87,20 @@ openclaw-preflight
 --verbose              显示更多细节
 --timeout <seconds>    网络检查超时秒数
 --profile <profile>    light | standard | media | multi-agent
+--lang <lang>          en | zh-CN
 ```
+
+## 语言选择
+
+用户可以显式选择输出语言：
+
+```bash
+npm start -- --lang en
+npm start -- --lang zh-CN
+```
+
+- 终端文本输出会跟随所选语言。
+- JSON 输出里也会带上 `language` 字段，方便后续 UI / Doctor / 自动化链路保持一致。
 
 ## 退出码
 

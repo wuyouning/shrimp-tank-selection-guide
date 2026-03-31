@@ -9,10 +9,11 @@ import { checkNetwork } from './checks/network';
 import { getHostInfo } from './checks/system';
 import { formatJson } from './formatters/json';
 import { formatText } from './formatters/text';
-import { PreflightReport, Profile, RunOptions } from './types';
+import { Language, PreflightReport, Profile, RunOptions } from './types';
 
 const VERSION = '1.0.0';
 const VALID_PROFILES: Profile[] = ['light', 'standard', 'media', 'multi-agent'];
+const VALID_LANGS: Language[] = ['en', 'zh-CN'];
 
 async function buildReport(options: RunOptions): Promise<PreflightReport> {
   const host = await getHostInfo();
@@ -29,6 +30,7 @@ async function buildReport(options: RunOptions): Promise<PreflightReport> {
     version: VERSION,
     timestamp: new Date().toISOString(),
     profile: options.profile,
+    language: options.lang,
     summary: {
       status: assessed.status,
       score: assessed.score,
@@ -69,14 +71,20 @@ function parseOptions(): RunOptions {
     .option('--output <path>', 'write output to file')
     .option('--verbose', 'show more detail')
     .option('--timeout <seconds>', 'network timeout in seconds', '5')
-    .option('--profile <profile>', 'light | standard | media | multi-agent', 'standard');
+    .option('--profile <profile>', 'light | standard | media | multi-agent', 'standard')
+    .option('--lang <lang>', 'en | zh-CN', 'en');
 
   program.parse(process.argv);
   const opts = program.opts();
   const profile = opts.profile as Profile;
+  const lang = opts.lang as Language;
 
   if (!VALID_PROFILES.includes(profile)) {
     throw new Error(`Invalid profile: ${opts.profile}. Use one of: ${VALID_PROFILES.join(', ')}`);
+  }
+
+  if (!VALID_LANGS.includes(lang)) {
+    throw new Error(`Invalid lang: ${opts.lang}. Use one of: ${VALID_LANGS.join(', ')}`);
   }
 
   const timeout = Number(opts.timeout);
@@ -90,13 +98,14 @@ function parseOptions(): RunOptions {
     verbose: Boolean(opts.verbose),
     timeout,
     profile,
+    lang,
   };
 }
 
 async function main() {
   const options = parseOptions();
   const report = await buildReport(options);
-  const content = options.json ? formatJson(report) : formatText(report, options.verbose);
+  const content = options.json ? formatJson(report) : formatText(report, options.verbose, options.lang);
 
   if (options.output) writeOutput(options.output, content);
   console.log(content);

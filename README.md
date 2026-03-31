@@ -86,7 +86,20 @@ openclaw-preflight
 --verbose              show more detail
 --timeout <seconds>    network timeout in seconds
 --profile <profile>    light | standard | media | multi-agent
+--lang <lang>          en | zh-CN
 ```
+
+## Language selection
+
+Users can choose the output language explicitly:
+
+```bash
+npm start -- --lang en
+npm start -- --lang zh-CN
+```
+
+- Text output follows the selected language.
+- JSON output also includes a `language` field so downstream tooling can stay in sync.
 
 ## Exit codes
 
