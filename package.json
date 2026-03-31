@@ -27,7 +27,8 @@
     "pack:local": "npm pack",
     "install:global-local": "npm run build && npm install -g .",
     "uninstall:global-local": "npm uninstall -g openclaw-preflight",
-    "release:check": "npm run clean && npm test && npm pack"
+    "release:check": "npm run clean && npm test && npm pack",
+    "build:dmg": "bash packaging/macos/build-dmg.sh"
   },
   "keywords": [
     "openclaw",

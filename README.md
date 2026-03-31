@@ -145,6 +145,29 @@ npm login
 npm publish --access public
 ```
 
+## macOS DMG build
+
+This project also includes a macOS installer-style DMG flow for both Intel and Apple Silicon Macs.
+
+Build it with:
+
+```bash
+npm run build:dmg
+```
+
+The generated DMG contains:
+
+- `Install Shrimp Tank.command`
+- `Run Shrimp Tank.command`
+- the packaged CLI tarball in `payload/`
+- a short macOS usage note
+
+Why one DMG works for both Intel and Apple Silicon:
+
+- the shipped CLI is JavaScript, not a single-architecture native binary
+- installation happens through the local Node.js runtime on the target Mac
+- as long as that Mac has a supported Node.js installed, the same DMG can be used on Intel and M-series machines
+
 ## Project strength today
 
 This tool is already good at:

@@ -27,6 +27,7 @@ It turns host readiness into a practical terminal workflow:
 - Windows posture / elevation guidance
 - bilingual CLI output
 - release-ready npm packaging flow
+- first macOS installer-style DMG flow for both Intel and Apple Silicon Macs
 
 ### Install
 
@@ -96,6 +97,19 @@ npm install -g openclaw-preflight
 openclaw-preflight --lang zh-CN
 openclaw-preflight --lang en
 shrimp-tank --lang zh-CN
+```
+
+### macOS DMG
+
+项目里已经补上了首版 macOS 安装器型 DMG 流程，支持：
+
+- Intel Mac
+- Apple Silicon（M 系列）Mac
+
+构建命令：
+
+```bash
+npm run build:dmg
 ```
 
 ### 项目定位
