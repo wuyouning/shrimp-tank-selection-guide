@@ -1,33 +1,20 @@
 import pc from 'picocolors';
-import { Language, PreflightReport } from '../types';
+import { Language, PreflightReport, ScoreBreakdownItem, ScoreSection } from '../types';
 import { formatBytes } from '../utils/format';
 
 function icon(ok: boolean): string {
   return ok ? pc.green('✓') : pc.red('✗');
 }
 
-function fitColor(level: string, lang: Language): string {
-  const labels =
-    lang === 'zh-CN'
-      ? { good: '良好', limited: '受限', poor: '较差' }
-      : { good: 'good', limited: 'limited', poor: 'poor' };
-  const label = labels[level as keyof typeof labels] || level;
-  if (level === 'good') return pc.green(label);
-  if (level === 'limited') return pc.yellow(label);
-  return pc.red(label);
-}
+const FIT_LABELS = {
+  en: { good: 'good', limited: 'limited', poor: 'poor' },
+  'zh-CN': { good: '良好', limited: '受限', poor: '较差' },
+} as const;
 
-function statusColor(status: string, lang: Language): string {
-  const labels =
-    lang === 'zh-CN'
-      ? { PASS: '通过', PASS_WITH_WARNINGS: '通过（有警告）', LIMITED: '受限', FAIL: '失败' }
-      : { PASS: 'PASS', PASS_WITH_WARNINGS: 'PASS_WITH_WARNINGS', LIMITED: 'LIMITED', FAIL: 'FAIL' };
-  const label = labels[status as keyof typeof labels] || status;
-  if (status === 'PASS') return pc.green(label);
-  if (status === 'PASS_WITH_WARNINGS') return pc.yellow(label);
-  if (status === 'LIMITED') return pc.yellow(label);
-  return pc.red(label);
-}
+const STATUS_LABELS = {
+  en: { PASS: 'PASS', PASS_WITH_WARNINGS: 'PASS_WITH_WARNINGS', LIMITED: 'LIMITED', FAIL: 'FAIL' },
+  'zh-CN': { PASS: '通过', PASS_WITH_WARNINGS: '通过（有警告）', LIMITED: '受限', FAIL: '失败' },
+} as const;
 
 const COPY = {
   en: {
@@ -60,7 +47,15 @@ const COPY = {
     automation: 'automation',
     multiAgent: 'multi-agent',
     media: 'media',
+    scoreOverview: 'Score Overview',
+    softwareScore: 'Software score',
+    hardwareScore: 'Hardware score',
+    realtimeScore: 'Real-time fluctuation score',
     scoreBreakdown: 'Score Breakdown',
+    softwareBreakdown: 'Software Breakdown',
+    hardwareBreakdown: 'Hardware Breakdown',
+    realtimeBreakdown: 'Real-time Breakdown',
+    bonusBreakdown: 'Bonus Breakdown',
     windowsPosture: 'Windows Posture',
     runningOnWindows: 'Running on Windows',
     yes: 'yes',
@@ -80,6 +75,7 @@ const COPY = {
     unknown: 'unknown',
     detected: 'detected',
     notDetected: 'not detected',
+    scoreOverviewNote: '100 points is the standard baseline. The final score may exceed 100 when the host earns bonus headroom.',
   },
   'zh-CN': {
     title: 'OpenClaw 宿主机预检器',
@@ -111,7 +107,15 @@ const COPY = {
     automation: '自动化',
     multiAgent: '多 Agent',
     media: '媒体',
+    scoreOverview: '分数总览',
+    softwareScore: '软件分',
+    hardwareScore: '硬件分',
+    realtimeScore: '实时波动分',
     scoreBreakdown: '评分拆解',
+    softwareBreakdown: '软件分拆解',
+    hardwareBreakdown: '硬件分拆解',
+    realtimeBreakdown: '实时波动分拆解',
+    bonusBreakdown: '奖励分拆解',
     windowsPosture: 'Windows 姿态',
     runningOnWindows: '当前是否运行在 Windows',
     yes: '是',
@@ -131,8 +135,254 @@ const COPY = {
     unknown: '未知',
     detected: '已检测到',
     notDetected: '未检测到',
+    scoreOverviewNote: '100 分是标准基线满分；当宿主机明显优于标准线时，最终得分可以超过 100 分。',
   },
 } as const;
+
+const ITEM_LOCALIZATION: Record<string, Record<Language, { label: string; note: string }>> = {
+  'runtime-baseline': {
+    en: {
+      label: 'Runtime baseline',
+      note: 'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.',
+    },
+    'zh-CN': {
+      label: '运行时基线',
+      note: 'Node 24 是 OpenClaw 推荐运行时；Node 22.14+ 是当前支持的最低基线。',
+    },
+  },
+  'tooling-baseline': {
+    en: {
+      label: 'Tooling baseline',
+      note: 'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.',
+    },
+    'zh-CN': {
+      label: '工具链基线',
+      note: '衡量安装关键依赖与日常辅助工具，例如 git、python3、ffmpeg、uv、docker。',
+    },
+  },
+  'platform-readiness': {
+    en: {
+      label: 'Platform readiness',
+      note: 'Rewards hosts where package management and platform-specific setup paths are clearly available.',
+    },
+    'zh-CN': {
+      label: '平台准备度',
+      note: '当平台的包管理器与系统级安装路径清晰可用时，会在这里加分。',
+    },
+  },
+  'memory-capacity': {
+    en: {
+      label: 'Memory capacity',
+      note: '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.',
+    },
+    'zh-CN': {
+      label: '内存容量',
+      note: '4 GB 是可用下限，8 GB 较舒适，16 GB 是更重 OpenClaw 场景的标准目标。',
+    },
+  },
+  'cpu-concurrency': {
+    en: {
+      label: 'CPU concurrency',
+      note: 'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.',
+    },
+    'zh-CN': {
+      label: 'CPU 并发能力',
+      note: '更高的逻辑核心数有助于并发工具调用、自动化任务和多 Agent 吞吐。',
+    },
+  },
+  'disk-capacity': {
+    en: {
+      label: 'Disk headroom',
+      note: 'Free disk matters for packages, caches, media outputs, logs, and sandbox images.',
+    },
+    'zh-CN': {
+      label: '磁盘余量',
+      note: '空闲磁盘会直接影响包安装、缓存、媒体产物、日志和沙箱镜像。',
+    },
+  },
+  'network-readiness': {
+    en: {
+      label: 'Network readiness',
+      note: 'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.',
+    },
+    'zh-CN': {
+      label: '网络准备度',
+      note: '反映当前 DNS 与外网 HTTPS 状态，对安装、更新、模型 API 与文档访问都很重要。',
+    },
+  },
+  'memory-availability': {
+    en: {
+      label: 'Current free memory',
+      note: 'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.',
+    },
+    'zh-CN': {
+      label: '当前空闲内存',
+      note: '这是实时快照，表示此刻还剩多少可用内存，与机器总内存容量分开计算。',
+    },
+  },
+  'system-load': {
+    en: {
+      label: 'Current system load',
+      note: 'Captures whether the machine is already under pressure at the moment this check runs.',
+    },
+    'zh-CN': {
+      label: '当前系统负载',
+      note: '用于反映本次检查运行时，这台机器是否已经处于明显压力状态。',
+    },
+  },
+  'bonus-large-memory-pool': {
+    en: { label: 'Bonus: large memory pool', note: '32 GB+ gives extra room for media-heavy and parallel workloads.' },
+    'zh-CN': { label: '奖励：超大内存池', note: '32 GB+ 能为媒体工作流和并行任务提供更充裕空间。' },
+  },
+  'bonus-extra-memory-headroom': {
+    en: { label: 'Bonus: extra memory headroom', note: '24 GB+ is meaningfully above the standard host baseline.' },
+    'zh-CN': { label: '奖励：额外内存余量', note: '24 GB+ 已明显高于标准宿主机基线。' },
+  },
+  'bonus-high-core-count': {
+    en: { label: 'Bonus: high core count', note: '12+ logical cores provide strong concurrency headroom for heavier agent use.' },
+    'zh-CN': { label: '奖励：高核心数', note: '12+ 逻辑核心能为更重的 Agent 并发场景提供明显余量。' },
+  },
+  'bonus-healthy-core-count': {
+    en: { label: 'Bonus: healthy core count', note: '8+ cores exceed the baseline target.' },
+    'zh-CN': { label: '奖励：健康核心数', note: '8+ 核已经高于基础标准线。' },
+  },
+  'bonus-ample-free-disk': {
+    en: { label: 'Bonus: ample free disk', note: 'Large free disk helps with sandboxes, media outputs, and longer-lived logs.' },
+    'zh-CN': { label: '奖励：充足磁盘空间', note: '更大的空闲磁盘更利于沙箱、媒体产物和长期日志。' },
+  },
+  'bonus-clean-network-sweep': {
+    en: { label: 'Bonus: clean network sweep', note: 'All configured network checks passed in the current run.' },
+    'zh-CN': { label: '奖励：网络全绿', note: '本次运行中所有配置的网络检查均通过。' },
+  },
+  'bonus-docker-available': {
+    en: { label: 'Bonus: Docker available', note: 'Useful for containerized deployments and sandbox workflows.' },
+    'zh-CN': { label: '奖励：Docker 已可用', note: '对容器化部署与沙箱工作流都很有帮助。' },
+  },
+  'bonus-uv-available': {
+    en: { label: 'Bonus: uv available', note: 'Useful for Python-oriented skills and tooling.' },
+    'zh-CN': { label: '奖励：uv 已可用', note: '对偏 Python 的技能与工具链更友好。' },
+  },
+  'bonus-openclaw-installed': {
+    en: { label: 'Bonus: OpenClaw already installed', note: 'Shows the host already cleared the basic CLI path once.' },
+    'zh-CN': { label: '奖励：OpenClaw 已安装', note: '说明这台机器已经至少成功通过过一次基础 CLI 安装路径。' },
+  },
+  'bonus-media-ready-host': {
+    en: { label: 'Bonus: media-ready host', note: 'Exceeds the standard media baseline with enough memory, CPU, and ffmpeg.' },
+    'zh-CN': { label: '奖励：媒体型宿主机', note: '内存、CPU 与 ffmpeg 条件都已超过标准媒体基线。' },
+  },
+  'bonus-multi-agent-headroom': {
+    en: { label: 'Bonus: multi-agent headroom', note: 'Clearly above the minimum concurrency profile target.' },
+    'zh-CN': { label: '奖励：多 Agent 余量', note: '已明显高于多 Agent 档位的最低并发目标。' },
+  },
+};
+
+const RUNTIME_TEXT: Record<Language, Record<string, string>> = {
+  en: {
+    'Missing required dependencies': 'Missing required dependencies',
+    'Install the missing required dependencies before deploying OpenClaw.': 'Install the missing required dependencies before deploying OpenClaw.',
+    'Missing recommended dependencies': 'Missing recommended dependencies',
+    'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.': 'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.',
+    'Network checks failed': 'Network checks failed',
+    'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.': 'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.',
+    'Low memory': 'Low memory',
+    'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.': 'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.',
+    'Limited memory headroom': 'Limited memory headroom',
+    'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.': 'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.',
+    'Low free memory right now': 'Low free memory right now',
+    'Close high-memory apps and rerun the check to avoid scoring against a transient spike.': 'Close high-memory apps and rerun the check to avoid scoring against a transient spike.',
+    'Low free disk space': 'Low free disk space',
+    'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.': 'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.',
+    'Low CPU core count': 'Low CPU core count',
+    'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.': 'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.',
+    'High current system load': 'High current system load',
+    'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.': 'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.',
+    'The media profile has limited memory headroom on this machine.': 'The media profile has limited memory headroom on this machine.',
+    'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.': 'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.',
+    'The multi-agent profile has limited concurrency headroom here.': 'The multi-agent profile has limited concurrency headroom here.',
+    'For multi-agent usage, target at least 8 CPU cores and 8 GB RAM.': 'For multi-agent usage, target at least 8 CPU cores and 8 GB RAM.',
+    'Homebrew is not installed on this macOS host.': 'Homebrew is not installed on this macOS host.',
+    'Install Homebrew to streamline dependency setup on macOS.': 'Install Homebrew to streamline dependency setup on macOS.',
+    'No supported Linux package manager was detected.': 'No supported Linux package manager was detected.',
+    'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.': 'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.',
+    'This Windows session is not elevated.': 'This Windows session is not elevated.',
+  },
+  'zh-CN': {
+    'Missing required dependencies': '缺少必需依赖',
+    'Install the missing required dependencies before deploying OpenClaw.': '请先补齐必需依赖，再部署 OpenClaw。',
+    'Missing recommended dependencies': '缺少推荐依赖',
+    'Add recommended tooling such as git, python3, and ffmpeg for a smoother setup.': '建议补齐 git、python3、ffmpeg 等推荐工具，以获得更顺滑的使用体验。',
+    'Network checks failed': '网络检查失败',
+    'Check DNS, proxy settings, outbound HTTPS access, and any corporate network controls.': '请检查 DNS、代理设置、外网 HTTPS 出站访问，以及公司网络控制策略。',
+    'Low memory': '总内存偏低',
+    'Use at least 4 GB RAM, and prefer 8 GB or more for stable day-to-day usage.': '建议至少使用 4 GB 内存；若想稳定日常使用，最好达到 8 GB 或以上。',
+    'Limited memory headroom': '内存余量有限',
+    'Upgrade to 8 GB or more if you want steadier background usage or more concurrent work.': '如果希望后台运行更稳定或支持更多并发任务，建议升级到 8 GB 或以上。',
+    'Low free memory right now': '当前空闲内存偏低',
+    'Close high-memory apps and rerun the check to avoid scoring against a transient spike.': '建议先关闭高内存占用应用后再重跑，避免瞬时占用拉低评分。',
+    'Low free disk space': '空闲磁盘空间偏低',
+    'Keep at least 5-10 GB of free disk space for packages, caches, and temp files.': '建议至少保留 5–10 GB 空闲磁盘空间，用于安装包、缓存和临时文件。',
+    'Low CPU core count': 'CPU 核心数偏低',
+    'Use a stronger multi-core CPU if you plan to run concurrent tasks or media workloads.': '如果打算跑并发任务或媒体型工作负载，建议使用更强的多核 CPU。',
+    'High current system load': '当前系统负载偏高',
+    'Rerun preflight when the machine is idle to separate permanent limits from temporary pressure.': '建议在机器空闲时重新执行预检，以区分长期能力上限和瞬时压力。',
+    'The media profile has limited memory headroom on this machine.': '这台机器在媒体档位下的内存余量有限。',
+    'Media workflows are more comfortable with 16 GB RAM or more and stronger compute/GPU support.': '媒体型工作流更适合 16 GB 及以上内存，以及更强的算力 / GPU 支持。',
+    'The multi-agent profile has limited concurrency headroom here.': '这台机器在多 Agent 档位下的并发余量有限。',
+    'For multi-agent usage, target at least 8 CPU cores and 8 GB RAM.': '如果要跑多 Agent，建议至少具备 8 核 CPU 和 8 GB 内存。',
+    'Homebrew is not installed on this macOS host.': '这台 macOS 宿主机尚未安装 Homebrew。',
+    'Install Homebrew to streamline dependency setup on macOS.': '建议安装 Homebrew，以简化 macOS 下的依赖补齐流程。',
+    'No supported Linux package manager was detected.': '未检测到受支持的 Linux 包管理器。',
+    'Add distro-specific package manager detection or ensure the runtime PATH exposes apt, dnf, yum, or pacman.': '建议补充发行版级包管理器识别，或确认运行环境 PATH 中可见 apt、dnf、yum、pacman。',
+    'This Windows session is not elevated.': '当前 Windows 会话未提权。',
+  },
+};
+
+function fitColor(level: string, lang: Language): string {
+  const label = FIT_LABELS[lang][level as keyof (typeof FIT_LABELS)[Language]] || level;
+  if (level === 'good') return pc.green(label);
+  if (level === 'limited') return pc.yellow(label);
+  return pc.red(label);
+}
+
+function statusColor(status: string, lang: Language): string {
+  const label = STATUS_LABELS[lang][status as keyof (typeof STATUS_LABELS)[Language]] || status;
+  if (status === 'PASS') return pc.green(label);
+  if (status === 'PASS_WITH_WARNINGS') return pc.yellow(label);
+  if (status === 'LIMITED') return pc.yellow(label);
+  return pc.red(label);
+}
+
+function localizeItem(item: ScoreBreakdownItem, lang: Language): { label: string; note?: string } {
+  const localized = ITEM_LOCALIZATION[item.key]?.[lang];
+  return {
+    label: localized?.label || item.label,
+    note: localized?.note || item.note,
+  };
+}
+
+function localizeLine(text: string, lang: Language): string {
+  const map = RUNTIME_TEXT[lang];
+  if (map[text]) return map[text];
+
+  for (const [source, target] of Object.entries(map)) {
+    if (text.startsWith(source + ':')) {
+      return text.replace(source, target);
+    }
+  }
+
+  return text;
+}
+
+function renderBreakdownSection(lines: string[], items: ScoreBreakdownItem[], title: string, lang: Language) {
+  if (!items.length) return;
+  lines.push(pc.bold(title));
+  for (const item of items) {
+    const localized = localizeItem(item, lang);
+    const maxSuffix = item.maxPoints != null ? ` / ${item.maxPoints}` : '';
+    lines.push(`- ${localized.label}: ${item.points}${maxSuffix}${localized.note ? ` — ${localized.note}` : ''}`);
+  }
+  lines.push('');
+}
 
 export function formatText(report: PreflightReport, verbose = false, lang: Language = 'en'): string {
   const t = COPY[lang];
@@ -144,6 +394,16 @@ export function formatText(report: PreflightReport, verbose = false, lang: Langu
   lines.push(
     `${pc.bold(`${t.status}:`)} ${statusColor(report.summary.status, lang)} (${report.summary.score}/${report.summary.standardMax}${report.summary.bonusPoints > 0 ? ` +${report.summary.bonusPoints} ${t.bonus}` : ''})`,
   );
+  lines.push('');
+
+  lines.push(pc.bold(t.scoreOverview));
+  lines.push(`- ${t.softwareScore}: ${report.summary.softwareScore}`);
+  lines.push(`- ${t.hardwareScore}: ${report.summary.hardwareScore}`);
+  lines.push(`- ${t.realtimeScore}: ${report.summary.realtimeScore}`);
+  if (report.summary.bonusPoints > 0) {
+    lines.push(`- ${t.bonus}: ${report.summary.bonusPoints}`);
+  }
+  lines.push(`- ${t.note}: ${t.scoreOverviewNote}`);
   lines.push('');
 
   lines.push(pc.bold(t.hostSummary));
@@ -198,12 +458,17 @@ export function formatText(report: PreflightReport, verbose = false, lang: Langu
   lines.push(`- ${t.media}: ${fitColor(report.fit.media, lang)}`);
   lines.push('');
 
+  const softwareItems = report.scoreBreakdown.items.filter((item) => item.section === 'software');
+  const hardwareItems = report.scoreBreakdown.items.filter((item) => item.section === 'hardware');
+  const realtimeItems = report.scoreBreakdown.items.filter((item) => item.section === 'realtime');
+  const bonusItems = report.scoreBreakdown.items.filter((item) => item.section === 'bonus');
+
   lines.push(pc.bold(t.scoreBreakdown));
-  for (const item of report.scoreBreakdown.items) {
-    const maxSuffix = item.maxPoints != null ? ` / ${item.maxPoints}` : '';
-    lines.push(`- ${item.label}: ${item.points}${maxSuffix}${item.note ? ` — ${item.note}` : ''}`);
-  }
   lines.push('');
+  renderBreakdownSection(lines, softwareItems, t.softwareBreakdown, lang);
+  renderBreakdownSection(lines, hardwareItems, t.hardwareBreakdown, lang);
+  renderBreakdownSection(lines, realtimeItems, t.realtimeBreakdown, lang);
+  renderBreakdownSection(lines, bonusItems, t.bonusBreakdown, lang);
 
   lines.push(pc.bold(t.windowsPosture));
   lines.push(`- ${t.runningOnWindows}: ${report.host.windows.runningOnWindows ? t.yes : t.no}`);
@@ -213,28 +478,28 @@ export function formatText(report: PreflightReport, verbose = false, lang: Langu
         ? report.host.windows.admin.isElevated
           ? t.elevated
           : t.notElevated
-        : `${t.notEvaluated} (${report.host.windows.admin.details || report.host.windows.admin.method})`
+        : `${t.notEvaluated} (${localizeLine(report.host.windows.admin.details || report.host.windows.admin.method, lang)})`
     }`,
   );
   for (const note of report.host.windows.notes) {
-    lines.push(`- ${t.note}: ${note}`);
+    lines.push(`- ${t.note}: ${localizeLine(note, lang)}`);
   }
   if (report.host.windows.runningOnWindows && report.host.windows.recommendations.length) {
     for (const recommendation of report.host.windows.recommendations) {
-      lines.push(`- ${t.recommendation}: ${recommendation}`);
+      lines.push(`- ${t.recommendation}: ${localizeLine(recommendation, lang)}`);
     }
   }
   lines.push('');
 
   if (report.warnings.length) {
     lines.push(pc.bold(pc.yellow(t.warnings)));
-    for (const warning of report.warnings) lines.push(`- ${warning}`);
+    for (const warning of report.warnings) lines.push(`- ${localizeLine(warning, lang)}`);
     lines.push('');
   }
 
   if (report.recommendations.length) {
     lines.push(pc.bold(t.recommendations));
-    for (const rec of report.recommendations) lines.push(`- ${rec}`);
+    for (const rec of report.recommendations) lines.push(`- ${localizeLine(rec, lang)}`);
     lines.push('');
   }
 

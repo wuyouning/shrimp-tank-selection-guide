@@ -10,13 +10,8 @@ function collectInstallHints(dependencies) {
         .filter((dependency) => !dependency.installed && dependency.installHint)
         .map((dependency) => `${dependency.name}: ${dependency.installHint}`);
 }
-function addScore(items, label, points, maxPoints, note) {
-    items.push({ key: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'), label, points, maxPoints, note });
-}
-function addBonus(items, label, points, note) {
-    if (!points)
-        return;
-    items.push({ key: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'), label, points, note });
+function addScore(items, section, key, label, points, maxPoints, note) {
+    items.push({ key, label, points, maxPoints, note, section });
 }
 function assessFit(host, hardware, dependencies, networkChecks, profile) {
     const warnings = [];
@@ -37,18 +32,14 @@ function assessFit(host, hardware, dependencies, networkChecks, profile) {
     const hasOpenClaw = !dependencies.find((d) => d.name === 'openclaw' && !d.installed);
     const networkSuccessCount = networkChecks.filter((check) => check.ok).length;
     const load1 = hardware.loadAverage?.[0] ?? 0;
-    const docsBackedBaseline = {
-        runtime: 20,
-        dependencies: 20,
-        network: 15,
-        memory: 20,
-        cpu: 10,
-        disk: 10,
-        osReadiness: 5,
-    };
-    const runtimeScore = requiredMissing.length === 0 ? docsBackedBaseline.runtime : 0;
-    addScore(scoreBreakdown, 'Runtime baseline', runtimeScore, docsBackedBaseline.runtime, 'Node 24 is recommended by OpenClaw docs; Node 22.14+ is the minimum supported floor.');
-    let dependencyScore = docsBackedBaseline.dependencies;
+    let softwareScore = 0;
+    let hardwareScore = 0;
+    let realtimeScore = 0;
+    let bonusPoints = 0;
+    const runtimeScore = requiredMissing.length === 0 ? 20 : 0;
+    softwareScore += runtimeScore;
+    addScore(scoreBreakdown, 'software', 'runtime-baseline', 'Runtime baseline', runtimeScore, 20, 'Node 24 is the recommended OpenClaw runtime; Node 22.14+ is the supported floor.');
+    let dependencyScore = 20;
     if (recommendedMissing.length)
         dependencyScore -= Math.min(12, recommendedMissing.length * 4);
     if (!hasFfmpeg)
@@ -58,98 +49,116 @@ function assessFit(host, hardware, dependencies, networkChecks, profile) {
     if (requiredMissing.length)
         dependencyScore = Math.max(0, dependencyScore - 10);
     dependencyScore = Math.max(0, dependencyScore);
-    addScore(scoreBreakdown, 'Tooling baseline', dependencyScore, docsBackedBaseline.dependencies, 'Covers git/python/ffmpeg plus optional helper tooling that improves real-world OpenClaw use.');
-    let networkScore = docsBackedBaseline.network;
-    networkScore -= failedNetwork.length * 4;
-    networkScore = Math.max(0, networkScore);
-    addScore(scoreBreakdown, 'Network readiness', networkScore, docsBackedBaseline.network, 'Healthy DNS and outbound HTTPS are required for installs, updates, model APIs, and docs access.');
-    let memoryScore = 0;
+    softwareScore += dependencyScore;
+    addScore(scoreBreakdown, 'software', 'tooling-baseline', 'Tooling baseline', dependencyScore, 20, 'Measures install-critical and day-to-day helper tooling such as git, python3, ffmpeg, uv, and docker.');
+    let platformScore = 2;
+    if (host.osFamily === 'macos' || host.osFamily === 'windows' || host.osFamily === 'linux')
+        platformScore = 4;
+    if (host.osFamily === 'macos' && host.packageManagers.find((x) => x.name === 'homebrew')?.detected)
+        platformScore = 5;
+    if (host.osFamily === 'linux' && host.packageManagers.some((x) => ['apt', 'dnf', 'yum', 'pacman'].includes(x.name) && x.detected))
+        platformScore = 5;
+    if (host.osFamily === 'windows' && host.windows.admin.canEvaluate)
+        platformScore = 5;
+    softwareScore += platformScore;
+    addScore(scoreBreakdown, 'software', 'platform-readiness', 'Platform readiness', platformScore, 5, 'Rewards hosts where package management and platform-specific setup paths are clearly available.');
+    let memoryCapacityScore = 0;
     if (totalMemGb >= 16)
-        memoryScore = docsBackedBaseline.memory;
+        memoryCapacityScore = 20;
     else if (totalMemGb >= 8)
-        memoryScore = 16;
+        memoryCapacityScore = 16;
     else if (totalMemGb >= 4)
-        memoryScore = 10;
+        memoryCapacityScore = 10;
     else
-        memoryScore = 2;
-    if (freeMemGb > 0 && freeMemGb < 1)
-        memoryScore -= 3;
-    memoryScore = Math.max(0, memoryScore);
-    addScore(scoreBreakdown, 'Memory headroom', memoryScore, docsBackedBaseline.memory, '4 GB is a usable floor; 8 GB is comfortable; 16 GB is the recommended standard for heavier media work.');
+        memoryCapacityScore = 2;
+    hardwareScore += memoryCapacityScore;
+    addScore(scoreBreakdown, 'hardware', 'memory-capacity', 'Memory capacity', memoryCapacityScore, 20, '4 GB is the usable floor, 8 GB is comfortable, and 16 GB is the standard target for heavier OpenClaw work.');
     let cpuScore = 0;
     if (cores >= 8)
-        cpuScore = docsBackedBaseline.cpu;
+        cpuScore = 15;
     else if (cores >= 4)
-        cpuScore = 7;
+        cpuScore = 10;
     else
-        cpuScore = 3;
-    addScore(scoreBreakdown, 'CPU concurrency', cpuScore, docsBackedBaseline.cpu, 'OpenClaw scales better with more CPU headroom, especially for concurrent tools and multi-agent work.');
-    let diskScore = 0;
+        cpuScore = 4;
+    hardwareScore += cpuScore;
+    addScore(scoreBreakdown, 'hardware', 'cpu-concurrency', 'CPU concurrency', cpuScore, 15, 'Higher logical core counts improve concurrent tool use, automation, and multi-agent throughput.');
+    let diskCapacityScore = 0;
     if (freeDiskGb >= 20)
-        diskScore = docsBackedBaseline.disk;
+        diskCapacityScore = 10;
     else if (freeDiskGb >= 10)
-        diskScore = 8;
+        diskCapacityScore = 8;
     else if (freeDiskGb >= 5)
-        diskScore = 5;
+        diskCapacityScore = 5;
     else
-        diskScore = 1;
-    addScore(scoreBreakdown, 'Disk headroom', diskScore, docsBackedBaseline.disk, '10–20 GB free keeps room for packages, logs, media artifacts, caches, and sandbox images.');
-    let osReadinessScore = 2;
-    if (host.osFamily === 'macos' || host.osFamily === 'windows' || host.osFamily === 'linux')
-        osReadinessScore = 4;
-    if (host.osFamily === 'macos' && host.packageManagers.find((x) => x.name === 'homebrew')?.detected)
-        osReadinessScore = 5;
-    if (host.osFamily === 'linux' && host.packageManagers.some((x) => ['apt', 'dnf', 'yum', 'pacman'].includes(x.name) && x.detected))
-        osReadinessScore = 5;
-    if (host.osFamily === 'windows' && host.windows.admin.canEvaluate)
-        osReadinessScore = 5;
-    addScore(scoreBreakdown, 'Platform readiness', osReadinessScore, docsBackedBaseline.osReadiness, 'Rewards hosts where package management and platform-specific readiness signals are clear.');
-    const rawScore = scoreBreakdown.reduce((sum, item) => sum + item.points, 0);
-    let bonusPoints = 0;
+        diskCapacityScore = 1;
+    hardwareScore += diskCapacityScore;
+    addScore(scoreBreakdown, 'hardware', 'disk-capacity', 'Disk headroom', diskCapacityScore, 10, 'Free disk matters for packages, caches, media outputs, logs, and sandbox images.');
+    let networkScore = 15;
+    networkScore -= failedNetwork.length * 4;
+    networkScore = Math.max(0, networkScore);
+    realtimeScore += networkScore;
+    addScore(scoreBreakdown, 'realtime', 'network-readiness', 'Network readiness', networkScore, 15, 'Reflects current DNS and outbound HTTPS conditions for installs, updates, model APIs, and docs access.');
+    let memoryAvailabilityScore = 10;
+    if (freeMemGb < 1)
+        memoryAvailabilityScore = 5;
+    if (freeMemGb < 0.5)
+        memoryAvailabilityScore = 2;
+    if (freeMemGb <= 0)
+        memoryAvailabilityScore = 0;
+    realtimeScore += memoryAvailabilityScore;
+    addScore(scoreBreakdown, 'realtime', 'memory-availability', 'Current free memory', memoryAvailabilityScore, 10, 'A live snapshot of how much headroom is currently free right now, separate from installed RAM capacity.');
+    let loadScore = 5;
+    if (load1 > Math.max(cores, 1) * 1.2)
+        loadScore = 1;
+    else if (load1 > Math.max(cores, 1) * 0.8)
+        loadScore = 3;
+    realtimeScore += loadScore;
+    addScore(scoreBreakdown, 'realtime', 'system-load', 'Current system load', loadScore, 5, 'Captures whether the machine is already under pressure at the moment this check runs.');
     if (totalMemGb >= 32) {
         bonusPoints += 8;
-        addBonus(scoreBreakdown, 'Bonus: large memory pool', 8, '32 GB+ gives extra breathing room for media and parallel workloads.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-large-memory-pool', 'Bonus: large memory pool', 8, undefined, '32 GB+ gives extra room for media-heavy and parallel workloads.');
     }
     else if (totalMemGb >= 24) {
         bonusPoints += 4;
-        addBonus(scoreBreakdown, 'Bonus: extra memory headroom', 4, '24 GB+ is comfortably above the recommended standard.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-extra-memory-headroom', 'Bonus: extra memory headroom', 4, undefined, '24 GB+ is meaningfully above the standard host baseline.');
     }
     if (cores >= 12) {
         bonusPoints += 6;
-        addBonus(scoreBreakdown, 'Bonus: high core count', 6, '12+ logical cores provide strong concurrency for heavier agent use.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-high-core-count', 'Bonus: high core count', 6, undefined, '12+ logical cores provide strong concurrency headroom for heavier agent use.');
     }
     else if (cores >= 8) {
         bonusPoints += 2;
-        addBonus(scoreBreakdown, 'Bonus: healthy core count', 2, '8+ cores exceed the baseline standard.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-healthy-core-count', 'Bonus: healthy core count', 2, undefined, '8+ cores exceed the baseline target.');
     }
     if (freeDiskGb >= 100) {
         bonusPoints += 3;
-        addBonus(scoreBreakdown, 'Bonus: ample free disk', 3, 'Large free disk helps with sandboxes, media outputs, and long-lived logs.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-ample-free-disk', 'Bonus: ample free disk', 3, undefined, 'Large free disk helps with sandboxes, media outputs, and longer-lived logs.');
     }
     if (networkSuccessCount === networkChecks.length && networkChecks.length > 0) {
         bonusPoints += 3;
-        addBonus(scoreBreakdown, 'Bonus: clean network sweep', 3, 'All configured network checks passed.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-clean-network-sweep', 'Bonus: clean network sweep', 3, undefined, 'All configured network checks passed in the current run.');
     }
     if (hasDocker) {
         bonusPoints += 2;
-        addBonus(scoreBreakdown, 'Bonus: Docker available', 2, 'Useful for containerized deployments and sandbox workflows.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-docker-available', 'Bonus: Docker available', 2, undefined, 'Useful for containerized deployments and sandbox workflows.');
     }
     if (hasUv) {
         bonusPoints += 1;
-        addBonus(scoreBreakdown, 'Bonus: uv available', 1, 'Useful for Python-related skills and tooling installs.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-uv-available', 'Bonus: uv available', 1, undefined, 'Useful for Python-oriented skills and tooling.');
     }
     if (hasOpenClaw) {
         bonusPoints += 2;
-        addBonus(scoreBreakdown, 'Bonus: OpenClaw already installed', 2, 'Shows the host already cleared the basic CLI path once.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-openclaw-installed', 'Bonus: OpenClaw already installed', 2, undefined, 'Shows the host already cleared the basic CLI path once.');
     }
     if (profile === 'media' && totalMemGb >= 16 && cores >= 8 && hasFfmpeg) {
         bonusPoints += 4;
-        addBonus(scoreBreakdown, 'Bonus: media-ready host', 4, 'Exceeds the standard media baseline with enough memory, CPU, and ffmpeg.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-media-ready-host', 'Bonus: media-ready host', 4, undefined, 'Exceeds the standard media baseline with enough memory, CPU, and ffmpeg.');
     }
     if (profile === 'multi-agent' && totalMemGb >= 16 && cores >= 12) {
         bonusPoints += 4;
-        addBonus(scoreBreakdown, 'Bonus: multi-agent headroom', 4, 'Clearly above the minimum concurrency profile target.');
+        addScore(scoreBreakdown, 'bonus', 'bonus-multi-agent-headroom', 'Bonus: multi-agent headroom', 4, undefined, 'Clearly above the minimum concurrency profile target.');
     }
+    const rawScore = softwareScore + hardwareScore + realtimeScore;
     const score = rawScore + bonusPoints;
     if (requiredMissing.length) {
         warnings.push(`Missing required dependencies: ${describeMissingDependencies(requiredMissing)}`);
@@ -236,6 +245,9 @@ function assessFit(host, hardware, dependencies, networkChecks, profile) {
         rawScore,
         bonusPoints,
         standardMax,
+        softwareScore,
+        hardwareScore,
+        realtimeScore,
         scoreBreakdown,
         status,
     };

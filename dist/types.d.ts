@@ -6,6 +6,7 @@ export type FitLevel = 'good' | 'limited' | 'poor';
 export type Importance = 'required' | 'recommended' | 'optional';
 export type CheckCategory = 'system' | 'dependency' | 'network' | 'hardware';
 export type PackageManagerName = 'homebrew' | 'apt' | 'dnf' | 'yum' | 'pacman' | 'winget';
+export type ScoreSection = 'software' | 'hardware' | 'realtime' | 'bonus';
 export interface PackageManagerStatus {
     name: PackageManagerName;
     detected: boolean;
@@ -78,12 +79,16 @@ export interface ScoreBreakdownItem {
     points: number;
     maxPoints?: number;
     note?: string;
+    section: ScoreSection;
 }
 export interface ScoreBreakdown {
     standardMax: number;
     rawScore: number;
     cappedScore: number;
     bonusPoints: number;
+    softwareScore: number;
+    hardwareScore: number;
+    realtimeScore: number;
     items: ScoreBreakdownItem[];
 }
 export interface ReportSummary {
@@ -91,6 +96,9 @@ export interface ReportSummary {
     score: number;
     standardMax: number;
     bonusPoints: number;
+    softwareScore: number;
+    hardwareScore: number;
+    realtimeScore: number;
 }
 export interface PreflightReport {
     tool: 'openclaw-preflight';

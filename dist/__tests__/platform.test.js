@@ -125,7 +125,7 @@ function createDependency(overrides) {
     ];
     const result = (0, fit_1.assessFit)(host, hardware, dependencies, network, 'media');
     strict_1.default.equal(result.standardMax, 100);
-    strict_1.default.ok(result.rawScore >= 95);
+    strict_1.default.equal(result.softwareScore + result.hardwareScore + result.realtimeScore, result.rawScore);
     strict_1.default.ok(result.score > 100);
     strict_1.default.ok(result.bonusPoints > 0);
 });

@@ -135,7 +135,7 @@ test('assessFit can score above the 100-point standard with bonuses', () => {
   const result = assessFit(host, hardware, dependencies, network, 'media');
 
   assert.equal(result.standardMax, 100);
-  assert.ok(result.rawScore >= 95);
+  assert.equal(result.softwareScore + result.hardwareScore + result.realtimeScore, result.rawScore);
   assert.ok(result.score > 100);
   assert.ok(result.bonusPoints > 0);
 });

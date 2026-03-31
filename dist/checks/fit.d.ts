@@ -7,6 +7,9 @@ export declare function assessFit(host: HostInfo, hardware: HardwareInfo, depend
     rawScore: number;
     bonusPoints: number;
     standardMax: number;
+    softwareScore: number;
+    hardwareScore: number;
+    realtimeScore: number;
     scoreBreakdown: ScoreBreakdownItem[];
     status: SummaryStatus;
 };
